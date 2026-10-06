@@ -29,22 +29,19 @@ import { gameEventBus } from "../events/game-event-bus";
 
 export class GameEngine {
   private app: Application | null = null;
-  private world: Container | null = null;
-  private entities: Container | null = null;
 
-  private player: PlayerController | null = null;
   private keyboard: KeyboardController | null = null;
 
   private collisionSystem: CollisionSystem | null = null;
-  private interactionSystem: InteractionSystem | null = null;
 
   private audioManager: AudioManager | null = null;
-  private inventory: InventoryController | null = null;
 
   private objectControllers = new Map<string, WorldObjectController>();
 
   private removeInteractionHandler: (() => void) | null = null;
+
   private removeInventoryHandler: (() => void) | null = null;
+
   private removeEscapeHandler: (() => void) | null = null;
 
   private removeContainerTakeItemHandler: (() => void) | null = null;
@@ -249,19 +246,12 @@ export class GameEngine {
     app.stage.addChild(world);
 
     this.app = app;
-    this.world = world;
-    this.entities = entities;
 
-    this.player = player;
     this.keyboard = keyboard;
 
     this.collisionSystem = collisionSystem;
 
-    this.interactionSystem = interactionSystem;
-
     this.audioManager = audioManager;
-
-    this.inventory = inventory;
 
     this.removeInteractionHandler = removeInteractionHandler;
 
@@ -370,22 +360,18 @@ export class GameEngine {
     this.removeContainerTakeAllHandler?.();
 
     this.keyboard?.destroy();
+
     this.audioManager?.destroy();
 
     this.app?.destroy(true);
 
     this.app = null;
-    this.world = null;
-    this.entities = null;
 
-    this.player = null;
     this.keyboard = null;
 
     this.collisionSystem = null;
-    this.interactionSystem = null;
 
     this.audioManager = null;
-    this.inventory = null;
 
     this.objectControllers.clear();
 
