@@ -1,0 +1,40 @@
+.language-switcher {
+  display: inline-flex;
+
+  padding: 4px;
+
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+
+  background: #1d1d1d;
+}
+
+.language-switcher__button {
+  min-width: 44px;
+  height: 32px;
+
+  padding: 0 10px;
+
+  border: 0;
+  border-radius: 7px;
+
+  color: #9f9f9f;
+  background: transparent;
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    background 150ms ease;
+}
+
+.language-switcher__button:hover:not(:disabled) {
+  color: #ffffff;
+}
+
+.language-switcher__button:disabled {
+  color: #ffffff;
+  background: #343434;
+
+  cursor: default;
+}
