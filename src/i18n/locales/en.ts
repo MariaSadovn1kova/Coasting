@@ -37,4 +37,11 @@ export const en = {
     title: "Inventory",
     empty: "Inventory is empty.",
   },
+
+  container: {
+    title: "Contents",
+    empty: "The container is empty.",
+    take: "Take",
+    takeAll: "Take All",
+  },
 } as const;

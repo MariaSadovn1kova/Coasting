@@ -37,4 +37,11 @@ export const ru = {
     title: "Инвентарь",
     empty: "Инвентарь пуст.",
   },
+
+  container: {
+    title: "Содержимое",
+    empty: "Контейнер пуст.",
+    take: "Взять",
+    takeAll: "Взять всё",
+  },
 } as const;

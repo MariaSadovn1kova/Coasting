@@ -1,6 +1,7 @@
 import { Application, Container } from "pixi.js";
 
 import { GAME_CONFIG } from "./game-config";
+import { gamePauseController } from "./game-pause-controller";
 
 import { AudioManager } from "../audio/audio-manager";
 
@@ -44,6 +45,11 @@ export class GameEngine {
 
   private removeInteractionHandler: (() => void) | null = null;
   private removeInventoryHandler: (() => void) | null = null;
+  private removeEscapeHandler: (() => void) | null = null;
+
+  private removeContainerTakeItemHandler: (() => void) | null = null;
+
+  private removeContainerTakeAllHandler: (() => void) | null = null;
 
   async mount(element: HTMLElement, location: ILocation) {
     const app = new Application();
@@ -97,13 +103,19 @@ export class GameEngine {
     const keyboard = new KeyboardController();
 
     const collisionSystem = new CollisionSystem(location);
+
     const interactionSystem = new InteractionSystem(location);
 
     const audioManager = new AudioManager();
+
     const inventory = new InventoryController();
 
     const removeInteractionHandler = keyboard.onKeyDown((key) => {
       if (key !== "KeyE") {
+        return;
+      }
+
+      if (gamePauseController.isPaused()) {
         return;
       }
 
@@ -134,13 +146,10 @@ export class GameEngine {
             audioManager.playSfx("chest-open");
           }
 
-          if (!controller.isEmpty()) {
-            const contents = controller.takeAllContents();
-
-            inventory.addItems(contents);
-
-            gameEventBus.emit("inventory-updated", inventory.getItems());
-          }
+          gameEventBus.emit("container-opened", {
+            containerId: object.id,
+            items: controller.getContents(),
+          });
 
           break;
         }
@@ -161,8 +170,74 @@ export class GameEngine {
         return;
       }
 
+      if (gamePauseController.has("container")) {
+        return;
+      }
+
       gameEventBus.emit("inventory-toggle");
     });
+
+    const removeEscapeHandler = keyboard.onKeyDown((key) => {
+      if (key !== "Escape") {
+        return;
+      }
+
+      if (gamePauseController.has("container")) {
+        gameEventBus.emit("container-close");
+
+        return;
+      }
+
+      if (gamePauseController.has("inventory")) {
+        gameEventBus.emit("inventory-close");
+      }
+    });
+
+    const removeContainerTakeItemHandler = gameEventBus.on(
+      "container-take-item",
+      ({ containerId, itemId }) => {
+        const controller = this.objectControllers.get(containerId);
+
+        if (!controller) {
+          return;
+        }
+
+        const item = controller.takeItem(itemId, 1);
+
+        if (!item) {
+          return;
+        }
+
+        inventory.addItem(item);
+
+        gameEventBus.emit("inventory-updated", inventory.getItems());
+
+        gameEventBus.emit("container-updated", controller.getContents());
+      },
+    );
+
+    const removeContainerTakeAllHandler = gameEventBus.on(
+      "container-take-all",
+      ({ containerId }) => {
+        const controller = this.objectControllers.get(containerId);
+
+        if (!controller) {
+          return;
+        }
+
+        const contents = controller.takeAllContents();
+
+        if (contents.length === 0) {
+          return;
+        }
+
+        inventory.addItems(contents);
+
+        gameEventBus.emit("inventory-updated", inventory.getItems());
+
+        gameEventBus.emit("container-updated", controller.getContents());
+      },
+    );
 
     keyboard.mount();
 
@@ -181,16 +256,28 @@ export class GameEngine {
     this.keyboard = keyboard;
 
     this.collisionSystem = collisionSystem;
+
     this.interactionSystem = interactionSystem;
 
     this.audioManager = audioManager;
+
     this.inventory = inventory;
 
     this.removeInteractionHandler = removeInteractionHandler;
 
     this.removeInventoryHandler = removeInventoryHandler;
 
+    this.removeEscapeHandler = removeEscapeHandler;
+
+    this.removeContainerTakeItemHandler = removeContainerTakeItemHandler;
+
+    this.removeContainerTakeAllHandler = removeContainerTakeAllHandler;
+
     app.ticker.add((ticker) => {
+      if (gamePauseController.isPaused()) {
+        return;
+      }
+
       player.update(ticker.deltaMS, GAME_CONFIG.player.moveSpeed);
 
       this.updateMovement(player, keyboard);
@@ -201,6 +288,10 @@ export class GameEngine {
     player: PlayerController,
     keyboard: KeyboardController,
   ) {
+    if (gamePauseController.isPaused()) {
+      return;
+    }
+
     if (player.isMoving()) {
       return;
     }
@@ -259,6 +350,10 @@ export class GameEngine {
   }
 
   private movePlayer(player: PlayerController, x: number, y: number) {
+    if (gamePauseController.isPaused()) {
+      return;
+    }
+
     if (!this.collisionSystem?.canMoveTo(x, y)) {
       return;
     }
@@ -269,6 +364,10 @@ export class GameEngine {
   destroy() {
     this.removeInteractionHandler?.();
     this.removeInventoryHandler?.();
+    this.removeEscapeHandler?.();
+
+    this.removeContainerTakeItemHandler?.();
+    this.removeContainerTakeAllHandler?.();
 
     this.keyboard?.destroy();
     this.audioManager?.destroy();
@@ -291,6 +390,15 @@ export class GameEngine {
     this.objectControllers.clear();
 
     this.removeInteractionHandler = null;
+
     this.removeInventoryHandler = null;
+
+    this.removeEscapeHandler = null;
+
+    this.removeContainerTakeItemHandler = null;
+
+    this.removeContainerTakeAllHandler = null;
+
+    gamePauseController.clear();
   }
 }

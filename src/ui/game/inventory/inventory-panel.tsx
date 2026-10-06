@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { useGameUiStore } from "../../../game/store/use-game-ui-store";
 import { useInventoryStore } from "../../../game/store/use-inventory-store";
 
+import "./inventory-panel.css";
+
 export function InventoryPanel() {
   const { t } = useTranslation();
 
@@ -17,88 +19,43 @@ export function InventoryPanel() {
   }
 
   return (
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
+    <div className="inventory-overlay">
+      <section className="inventory-panel">
+        <header className="inventory-panel__header">
+          <h2 className="inventory-panel__title">{t("inventory.title")}</h2>
 
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-
-        background: "rgba(0, 0, 0, 0.55)",
-
-        zIndex: 100,
-      }}
-    >
-      <div
-        style={{
-          width: 560,
-          minHeight: 360,
-
-          padding: 24,
-
-          border: "1px solid #454545",
-          borderRadius: 16,
-
-          background: "#1b1b1b",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-
-            marginBottom: 24,
-          }}
-        >
-          <h2
-            style={{
-              margin: 0,
-            }}
+          <button
+            type="button"
+            className="inventory-panel__close"
+            onClick={closeInventory}
+            aria-label={t("common.close")}
           >
-            {t("inventory.title")}
-          </h2>
-
-          <button type="button" onClick={closeInventory}>
             ×
           </button>
-        </div>
+        </header>
 
         {items.length === 0 ? (
-          <p>{t("inventory.empty")}</p>
+          <p className="inventory-panel__empty">{t("inventory.empty")}</p>
         ) : (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-
-              gap: 12,
-            }}
-          >
+          <div className="inventory-panel__grid">
             {items.map((entry) => (
-              <div
-                key={entry.item.id}
-                style={{
-                  padding: 16,
+              <article key={entry.item.id} className="inventory-panel__item">
+                <strong className="inventory-panel__item-name">
+                  {t(entry.item.nameKey)}
+                </strong>
 
-                  border: "1px solid #353535",
-                  borderRadius: 10,
+                <p className="inventory-panel__item-description">
+                  {t(entry.item.descriptionKey)}
+                </p>
 
-                  background: "#242424",
-                }}
-              >
-                <strong>{t(entry.item.nameKey)}</strong>
-
-                <p>{t(entry.item.descriptionKey)}</p>
-
-                <span>× {entry.quantity}</span>
-              </div>
+                <span className="inventory-panel__item-quantity">
+                  × {entry.quantity}
+                </span>
+              </article>
             ))}
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }

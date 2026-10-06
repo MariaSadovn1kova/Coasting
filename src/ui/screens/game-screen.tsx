@@ -5,7 +5,9 @@ import { useAppStore } from "../../app/store/use-app-store";
 import { testRoom } from "../../content/locations/test-room";
 
 import { GameCanvas } from "../game/game-canvas";
+import { ContainerPanel } from "../game/inventory/container-panel";
 import { InventoryPanel } from "../game/inventory/inventory-panel";
+import { resetGameUi } from "../game/reset-game-ui";
 import { useGameUiEvents } from "../game/use-game-ui-events";
 
 export function GameScreen() {
@@ -14,6 +16,12 @@ export function GameScreen() {
   const setScreen = useAppStore((state) => state.setScreen);
 
   useGameUiEvents();
+
+  const handleBackToMenu = () => {
+    resetGameUi();
+
+    setScreen("main-menu");
+  };
 
   return (
     <main
@@ -42,12 +50,14 @@ export function GameScreen() {
       >
         <strong>{t(testRoom.nameKey)}</strong>
 
-        <button type="button" onClick={() => setScreen("main-menu")}>
+        <button type="button" onClick={handleBackToMenu}>
           {t("game.backToMenu")}
         </button>
       </div>
 
       <InventoryPanel />
+
+      <ContainerPanel />
     </main>
   );
 }

@@ -1,8 +1,31 @@
 import type { IContainerItem } from "../inventory/container-content";
 
+interface IContainerOpenedPayload {
+  containerId: string;
+  items: IContainerItem[];
+}
+
+interface IContainerTakeItemPayload {
+  containerId: string;
+  itemId: string;
+}
+
+interface IContainerTakeAllPayload {
+  containerId: string;
+}
+
 interface IGameEventMap {
   "inventory-toggle": undefined;
+  "inventory-close": undefined;
   "inventory-updated": IContainerItem[];
+
+  "container-opened": IContainerOpenedPayload;
+  "container-updated": IContainerItem[];
+
+  "container-take-item": IContainerTakeItemPayload;
+  "container-take-all": IContainerTakeAllPayload;
+
+  "container-close": undefined;
 }
 
 type TGameEvent = keyof IGameEventMap;

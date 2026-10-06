@@ -1,4 +1,7 @@
-import type { TContainerContent } from "../inventory/container-content";
+import type {
+  IContainerItem,
+  TContainerContent,
+} from "../inventory/container-content";
 
 import type { IWorldObject } from "./world-object";
 import type { IWorldObjectState } from "./world-object-state";
@@ -72,6 +75,31 @@ export class WorldObjectController {
     this.view.setOpen(true);
 
     return true;
+  }
+
+  takeItem(itemId: string, quantity = 1): IContainerItem | null {
+    const index = this.contents.findIndex((entry) => entry.item.id === itemId);
+
+    if (index === -1) {
+      return null;
+    }
+
+    const entry = this.contents[index];
+
+    const takenQuantity = Math.min(quantity, entry.quantity);
+
+    const takenItem: IContainerItem = {
+      item: entry.item,
+      quantity: takenQuantity,
+    };
+
+    entry.quantity -= takenQuantity;
+
+    if (entry.quantity <= 0) {
+      this.contents.splice(index, 1);
+    }
+
+    return takenItem;
   }
 
   takeAllContents() {
