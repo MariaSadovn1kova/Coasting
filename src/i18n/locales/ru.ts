@@ -25,4 +25,16 @@ export const ru = {
       name: "Тестовая комната",
     },
   },
+
+  items: {
+    oldKey: {
+      name: "Старый ключ",
+      description: "Потёртый ключ неизвестно от какого замка.",
+    },
+  },
+
+  inventory: {
+    title: "Инвентарь",
+    empty: "Инвентарь пуст.",
+  },
 } as const;

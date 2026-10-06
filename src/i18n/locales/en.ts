@@ -25,4 +25,16 @@ export const en = {
       name: "Test Room",
     },
   },
+
+  items: {
+    oldKey: {
+      name: "Old Key",
+      description: "A worn key from an unknown lock.",
+    },
+  },
+
+  inventory: {
+    title: "Inventory",
+    empty: "Inventory is empty.",
+  },
 } as const;

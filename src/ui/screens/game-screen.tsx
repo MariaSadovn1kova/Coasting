@@ -1,13 +1,19 @@
 import { useTranslation } from "react-i18next";
 
 import { useAppStore } from "../../app/store/use-app-store";
+
 import { testRoom } from "../../content/locations/test-room";
+
 import { GameCanvas } from "../game/game-canvas";
+import { InventoryPanel } from "../game/inventory/inventory-panel";
+import { useGameUiEvents } from "../game/use-game-ui-events";
 
 export function GameScreen() {
   const { t } = useTranslation();
 
   const setScreen = useAppStore((state) => state.setScreen);
+
+  useGameUiEvents();
 
   return (
     <main
@@ -30,6 +36,8 @@ export function GameScreen() {
           alignItems: "flex-start",
 
           gap: 12,
+
+          zIndex: 10,
         }}
       >
         <strong>{t(testRoom.nameKey)}</strong>
@@ -38,6 +46,8 @@ export function GameScreen() {
           {t("game.backToMenu")}
         </button>
       </div>
+
+      <InventoryPanel />
     </main>
   );
 }

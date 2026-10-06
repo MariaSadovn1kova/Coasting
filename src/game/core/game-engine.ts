@@ -19,7 +19,12 @@ import type { TPlayerDirection } from "../entities/player-direction";
 import { KeyboardController } from "../input/keyboard-controller";
 
 import { InteractionSystem } from "../interaction/interaction-system";
+
 import { CollisionSystem } from "../systems/collision-system";
+
+import { InventoryController } from "../inventory/inventory-controller";
+
+import { gameEventBus } from "../events/game-event-bus";
 
 export class GameEngine {
   private app: Application | null = null;
@@ -33,10 +38,12 @@ export class GameEngine {
   private interactionSystem: InteractionSystem | null = null;
 
   private audioManager: AudioManager | null = null;
+  private inventory: InventoryController | null = null;
 
   private objectControllers = new Map<string, WorldObjectController>();
 
   private removeInteractionHandler: (() => void) | null = null;
+  private removeInventoryHandler: (() => void) | null = null;
 
   async mount(element: HTMLElement, location: ILocation) {
     const app = new Application();
@@ -93,6 +100,7 @@ export class GameEngine {
     const interactionSystem = new InteractionSystem(location);
 
     const audioManager = new AudioManager();
+    const inventory = new InventoryController();
 
     const removeInteractionHandler = keyboard.onKeyDown((key) => {
       if (key !== "KeyE") {
@@ -123,13 +131,15 @@ export class GameEngine {
           const didOpen = controller.open();
 
           if (didOpen) {
-            const audio = new Audio("/assets/audio/sfx/open-chest.mp3");
+            audioManager.playSfx("chest-open");
+          }
 
-            audio.volume = 1;
+          if (!controller.isEmpty()) {
+            const contents = controller.takeAllContents();
 
-            audio.play().catch((error) => {
-              window.alert(error);
-            });
+            inventory.addItems(contents);
+
+            gameEventBus.emit("inventory-updated", inventory.getItems());
           }
 
           break;
@@ -144,6 +154,14 @@ export class GameEngine {
         case "inspect":
           break;
       }
+    });
+
+    const removeInventoryHandler = keyboard.onKeyDown((key) => {
+      if (key !== "KeyI") {
+        return;
+      }
+
+      gameEventBus.emit("inventory-toggle");
     });
 
     keyboard.mount();
@@ -166,8 +184,11 @@ export class GameEngine {
     this.interactionSystem = interactionSystem;
 
     this.audioManager = audioManager;
+    this.inventory = inventory;
 
     this.removeInteractionHandler = removeInteractionHandler;
+
+    this.removeInventoryHandler = removeInventoryHandler;
 
     app.ticker.add((ticker) => {
       player.update(ticker.deltaMS, GAME_CONFIG.player.moveSpeed);
@@ -247,6 +268,7 @@ export class GameEngine {
 
   destroy() {
     this.removeInteractionHandler?.();
+    this.removeInventoryHandler?.();
 
     this.keyboard?.destroy();
     this.audioManager?.destroy();
@@ -264,9 +286,11 @@ export class GameEngine {
     this.interactionSystem = null;
 
     this.audioManager = null;
+    this.inventory = null;
 
     this.objectControllers.clear();
 
     this.removeInteractionHandler = null;
+    this.removeInventoryHandler = null;
   }
 }

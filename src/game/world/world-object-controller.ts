@@ -1,3 +1,5 @@
+import type { TContainerContent } from "../inventory/container-content";
+
 import type { IWorldObject } from "./world-object";
 import type { IWorldObjectState } from "./world-object-state";
 
@@ -14,6 +16,8 @@ export class WorldObjectController {
 
   private state: IWorldObjectState;
 
+  private contents: TContainerContent = [];
+
   constructor({ object, view }: IWorldObjectControllerParams) {
     this.object = object;
     this.view = view;
@@ -21,6 +25,15 @@ export class WorldObjectController {
     this.state = {
       isOpen: false,
     };
+
+    if (
+      object.type === "interactive" &&
+      object.interactionAction === "open-container"
+    ) {
+      this.contents = object.contents.map((entry) => ({
+        ...entry,
+      }));
+    }
 
     this.view.setOpen(this.state.isOpen);
   }
@@ -35,8 +48,18 @@ export class WorldObjectController {
     };
   }
 
+  getContents() {
+    return this.contents.map((entry) => ({
+      ...entry,
+    }));
+  }
+
   isOpen() {
     return this.state.isOpen;
+  }
+
+  isEmpty() {
+    return this.contents.length === 0;
   }
 
   open() {
@@ -49,5 +72,13 @@ export class WorldObjectController {
     this.view.setOpen(true);
 
     return true;
+  }
+
+  takeAllContents() {
+    const contents = this.getContents();
+
+    this.contents = [];
+
+    return contents;
   }
 }

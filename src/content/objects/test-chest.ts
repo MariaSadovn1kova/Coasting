@@ -1,6 +1,8 @@
-import type { IWorldObject } from "../../game/world/world-object";
+import { oldKey } from "../items/old-key";
 
-export const testChest: IWorldObject = {
+import type { IContainerWorldObject } from "../../game/world/world-object";
+
+export const testChest: IContainerWorldObject = {
   id: "test-chest",
 
   type: "interactive",
@@ -12,4 +14,11 @@ export const testChest: IWorldObject = {
   },
 
   blocksMovement: true,
+
+  contents: [
+    {
+      item: oldKey,
+      quantity: 1,
+    },
+  ],
 };
