@@ -5,6 +5,7 @@ import { gameEventBus } from "../../game/events/game-event-bus";
 import { useContainerStore } from "../../game/store/use-container-store";
 import { useGameUiStore } from "../../game/store/use-game-ui-store";
 import { useInventoryStore } from "../../game/store/use-inventory-store";
+import { useSaveMenuStore } from "../../game/store/use-save-menu-store";
 
 export function useGameUiEvents() {
   const toggleInventory = useGameUiStore((state) => state.toggleInventory);
@@ -18,6 +19,8 @@ export function useGameUiEvents() {
   const setContainerItems = useContainerStore((state) => state.setItems);
 
   const closeContainer = useContainerStore((state) => state.closeContainer);
+
+  const closeSaveMenu = useSaveMenuStore((state) => state.closeSaveMenu);
 
   useEffect(() => {
     const removeInventoryToggleListener = gameEventBus.on(
@@ -62,6 +65,13 @@ export function useGameUiEvents() {
       },
     );
 
+    const removeSaveMenuCloseListener = gameEventBus.on(
+      "save-menu-close",
+      () => {
+        closeSaveMenu();
+      },
+    );
+
     return () => {
       removeInventoryToggleListener();
       removeInventoryCloseListener();
@@ -70,6 +80,8 @@ export function useGameUiEvents() {
       removeContainerOpenedListener();
       removeContainerUpdatedListener();
       removeContainerCloseListener();
+
+      removeSaveMenuCloseListener();
     };
   }, [
     toggleInventory,
@@ -78,5 +90,6 @@ export function useGameUiEvents() {
     openContainer,
     setContainerItems,
     closeContainer,
+    closeSaveMenu,
   ]);
 }

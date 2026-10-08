@@ -4,16 +4,23 @@ import { useAppStore } from "../../app/store/use-app-store";
 
 import { testRoom } from "../../content/locations/test-room";
 
+import { useSaveMenuStore } from "../../game/store/use-save-menu-store";
+
 import { GameCanvas } from "../game/game-canvas";
 import { ContainerPanel } from "../game/inventory/container-panel";
 import { InventoryPanel } from "../game/inventory/inventory-panel";
 import { resetGameUi } from "../game/reset-game-ui";
+import { SaveMenu } from "../game/save/save-menu";
 import { useGameUiEvents } from "../game/use-game-ui-events";
 
 export function GameScreen() {
   const { t } = useTranslation();
 
   const setScreen = useAppStore((state) => state.setScreen);
+
+  const openSaveMenu = useSaveMenuStore((state) => state.openSaveMenu);
+
+  const openLoadMenu = useSaveMenuStore((state) => state.openLoadMenu);
 
   useGameUiEvents();
 
@@ -50,6 +57,14 @@ export function GameScreen() {
       >
         <strong>{t(testRoom.nameKey)}</strong>
 
+        <button type="button" onClick={openSaveMenu}>
+          {t("saveMenu.saveTitle")}
+        </button>
+
+        <button type="button" onClick={openLoadMenu}>
+          {t("saveMenu.loadTitle")}
+        </button>
+
         <button type="button" onClick={handleBackToMenu}>
           {t("game.backToMenu")}
         </button>
@@ -58,6 +73,8 @@ export function GameScreen() {
       <InventoryPanel />
 
       <ContainerPanel />
+
+      <SaveMenu />
     </main>
   );
 }

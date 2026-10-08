@@ -1,6 +1,7 @@
 export type TGamePauseReason =
   | "inventory"
   | "container"
+  | "save-menu"
   | "dialogue"
   | "pause-menu";
 

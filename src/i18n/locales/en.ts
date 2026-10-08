@@ -44,4 +44,13 @@ export const en = {
     take: "Take",
     takeAll: "Take All",
   },
+
+  saveMenu: {
+    saveTitle: "Save Game",
+    loadTitle: "Load Game",
+    loading: "Loading saves...",
+    slot: "Slot {{slot}}",
+    empty: "Empty slot",
+    corrupted: "Corrupted save",
+  },
 } as const;

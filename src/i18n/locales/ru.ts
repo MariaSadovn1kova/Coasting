@@ -44,4 +44,13 @@ export const ru = {
     take: "Взять",
     takeAll: "Взять всё",
   },
+
+  saveMenu: {
+    saveTitle: "Сохранить игру",
+    loadTitle: "Загрузить игру",
+    loading: "Загрузка сохранений...",
+    slot: "Слот {{slot}}",
+    empty: "Пустой слот",
+    corrupted: "Повреждённое сохранение",
+  },
 } as const;

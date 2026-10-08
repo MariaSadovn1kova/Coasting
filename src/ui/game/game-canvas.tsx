@@ -2,6 +2,9 @@ import { useEffect, useRef } from "react";
 
 import { GameEngine } from "../../game/core/game-engine";
 
+import { useGameEngineStore } from "../../game/store/use-game-engine-store";
+import { usePendingLoadStore } from "../../game/store/use-pending-load-store";
+
 import type { ILocation } from "../../game/world/location";
 
 interface IGameCanvasProps {
@@ -27,6 +30,26 @@ export function GameCanvas({ location }: IGameCanvasProps) {
 
       if (isCancelled) {
         engine.destroy();
+
+        return;
+      }
+
+      useGameEngineStore.getState().setEngine(engine);
+
+      const pendingSlot = usePendingLoadStore.getState().slot;
+
+      if (pendingSlot === null) {
+        return;
+      }
+
+      try {
+        const loaded = await engine.loadGame(pendingSlot);
+
+        if (loaded && !isCancelled) {
+          usePendingLoadStore.getState().clearPendingLoad();
+        }
+      } catch (error) {
+        console.error("Failed to load pending save", error);
       }
     };
 
@@ -34,6 +57,12 @@ export function GameCanvas({ location }: IGameCanvasProps) {
 
     return () => {
       isCancelled = true;
+
+      const currentEngine = useGameEngineStore.getState().engine;
+
+      if (currentEngine === engine) {
+        useGameEngineStore.getState().setEngine(null);
+      }
 
       engine.destroy();
     };

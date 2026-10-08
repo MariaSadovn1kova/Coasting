@@ -27,7 +27,20 @@ import { InventoryController } from "../inventory/inventory-controller";
 
 import { gameEventBus } from "../events/game-event-bus";
 
+import { useWorldStateStore } from "../store/use-world-state-store";
+
+import { SaveManager } from "../save/save-manager";
+import type { ISaveData } from "../save/save-data";
+import type { TSaveSlot } from "../save/save-slot";
+
 export class GameEngine {
+  private player: PlayerController | null = null;
+  private inventory: InventoryController | null = null;
+
+  private locationId: string | null = null;
+
+  private saveManager = new SaveManager();
+
   private app: Application | null = null;
 
   private keyboard: KeyboardController | null = null;
@@ -48,6 +61,8 @@ export class GameEngine {
 
   private removeContainerTakeAllHandler: (() => void) | null = null;
 
+  private removeQuickSaveHandler: (() => void) | null = null;
+
   async mount(element: HTMLElement, location: ILocation) {
     const app = new Application();
 
@@ -67,12 +82,17 @@ export class GameEngine {
 
     entities.sortableChildren = true;
 
+    const worldState = useWorldStateStore.getState();
+
     location.objects.forEach((object) => {
       const view = createWorldObjectView(object);
+
+      const runtimeState = worldState.getObjectState(location.id, object.id);
 
       const controller = new WorldObjectController({
         object,
         view,
+        runtimeState,
       });
 
       this.objectControllers.set(object.id, controller);
@@ -141,6 +161,10 @@ export class GameEngine {
 
           if (didOpen) {
             audioManager.playSfx("chest-open");
+
+            worldState.patchObjectState(location.id, object.id, {
+              isOpen: true,
+            });
           }
 
           gameEventBus.emit("container-opened", {
@@ -179,6 +203,12 @@ export class GameEngine {
         return;
       }
 
+      if (gamePauseController.has("save-menu")) {
+        gameEventBus.emit("save-menu-close");
+
+        return;
+      }
+
       if (gamePauseController.has("container")) {
         gameEventBus.emit("container-close");
 
@@ -187,6 +217,26 @@ export class GameEngine {
 
       if (gamePauseController.has("inventory")) {
         gameEventBus.emit("inventory-close");
+      }
+    });
+
+    const removeQuickSaveHandler = keyboard.onKeyDown(async (key) => {
+      if (key !== "F5") {
+        return;
+      }
+
+      try {
+        const saveData = await this.saveGame(1);
+
+        if (!saveData) {
+          console.warn("Game is not ready for saving");
+
+          return;
+        }
+
+        console.log("Game saved to slot 1", saveData);
+      } catch (error) {
+        console.error("Failed to save game", error);
       }
     });
 
@@ -206,6 +256,21 @@ export class GameEngine {
         }
 
         inventory.addItem(item);
+
+        const currentState = worldState.getObjectState(
+          location.id,
+          containerId,
+        );
+
+        const removedItemIds = currentState?.removedItemIds ?? [];
+
+        if (
+          controller.getContents().every((entry) => entry.item.id !== itemId)
+        ) {
+          worldState.patchObjectState(location.id, containerId, {
+            removedItemIds: [...new Set([...removedItemIds, itemId])],
+          });
+        }
 
         gameEventBus.emit("inventory-updated", inventory.getItems());
 
@@ -230,6 +295,22 @@ export class GameEngine {
 
         inventory.addItems(contents);
 
+        const currentState = worldState.getObjectState(
+          location.id,
+          containerId,
+        );
+
+        const removedItemIds = currentState?.removedItemIds ?? [];
+
+        worldState.patchObjectState(location.id, containerId, {
+          removedItemIds: [
+            ...new Set([
+              ...removedItemIds,
+              ...contents.map((entry) => entry.item.id),
+            ]),
+          ],
+        });
+
         gameEventBus.emit("inventory-updated", inventory.getItems());
 
         gameEventBus.emit("container-updated", controller.getContents());
@@ -247,17 +328,24 @@ export class GameEngine {
 
     this.app = app;
 
+    this.player = player;
     this.keyboard = keyboard;
 
     this.collisionSystem = collisionSystem;
 
     this.audioManager = audioManager;
 
+    this.inventory = inventory;
+
+    this.locationId = location.id;
+
     this.removeInteractionHandler = removeInteractionHandler;
 
     this.removeInventoryHandler = removeInventoryHandler;
 
     this.removeEscapeHandler = removeEscapeHandler;
+
+    this.removeQuickSaveHandler = removeQuickSaveHandler;
 
     this.removeContainerTakeItemHandler = removeContainerTakeItemHandler;
 
@@ -272,6 +360,76 @@ export class GameEngine {
 
       this.updateMovement(player, keyboard);
     });
+  }
+
+  createSaveData(): ISaveData | null {
+    if (!this.player || !this.inventory || !this.locationId) {
+      return null;
+    }
+
+    return this.saveManager.createSaveData({
+      locationId: this.locationId,
+
+      playerPosition: this.player.getPosition(),
+
+      inventory: this.inventory.getItems(),
+    });
+  }
+
+  async saveGame(slot: TSaveSlot): Promise<ISaveData | null> {
+    if (!this.player || !this.inventory || !this.locationId) {
+      return null;
+    }
+
+    return this.saveManager.save(slot, {
+      locationId: this.locationId,
+
+      playerPosition: this.player.getPosition(),
+
+      inventory: this.inventory.getItems(),
+    });
+  }
+
+  async loadGame(slot: TSaveSlot): Promise<boolean> {
+    if (!this.player || !this.inventory || !this.locationId) {
+      return false;
+    }
+
+    const loadedGame = await this.saveManager.loadGame(slot);
+
+    if (loadedGame.locationId !== this.locationId) {
+      console.warn(
+        `Cannot load location "${loadedGame.locationId}" while "${this.locationId}" is active`,
+      );
+
+      return false;
+    }
+
+    this.player.setPosition(
+      loadedGame.playerPosition.x,
+      loadedGame.playerPosition.y,
+    );
+
+    this.inventory.setItems(loadedGame.inventory);
+
+    const worldState = useWorldStateStore.getState();
+
+    this.objectControllers.forEach((controller, objectId) => {
+      const runtimeState = worldState.getObjectState(
+        this.locationId!,
+        objectId,
+      );
+
+      controller.applyRuntimeState(runtimeState);
+    });
+
+    gameEventBus.emit("inventory-updated", this.inventory.getItems());
+
+    gameEventBus.emit("container-close");
+
+    gameEventBus.emit("inventory-close");
+
+    return true;
   }
 
   private updateMovement(
@@ -355,6 +513,7 @@ export class GameEngine {
     this.removeInteractionHandler?.();
     this.removeInventoryHandler?.();
     this.removeEscapeHandler?.();
+    this.removeQuickSaveHandler?.();
 
     this.removeContainerTakeItemHandler?.();
     this.removeContainerTakeAllHandler?.();
@@ -380,6 +539,8 @@ export class GameEngine {
     this.removeInventoryHandler = null;
 
     this.removeEscapeHandler = null;
+
+    this.removeQuickSaveHandler = null;
 
     this.removeContainerTakeItemHandler = null;
 

@@ -3,14 +3,15 @@ import type {
   TContainerContent,
 } from "../inventory/container-content";
 
-import type { IWorldObject } from "./world-object";
-import type { IWorldObjectState } from "./world-object-state";
-
 import type { IWorldObjectView } from "./create-world-object-view";
+import type { IWorldObject } from "./world-object";
+import type { IWorldObjectRuntimeState } from "./world-state";
+import type { IWorldObjectState } from "./world-object-state";
 
 interface IWorldObjectControllerParams {
   object: IWorldObject;
   view: IWorldObjectView;
+  runtimeState?: IWorldObjectRuntimeState;
 }
 
 export class WorldObjectController {
@@ -21,7 +22,7 @@ export class WorldObjectController {
 
   private contents: TContainerContent = [];
 
-  constructor({ object, view }: IWorldObjectControllerParams) {
+  constructor({ object, view, runtimeState }: IWorldObjectControllerParams) {
     this.object = object;
     this.view = view;
 
@@ -29,14 +30,7 @@ export class WorldObjectController {
       isOpen: false,
     };
 
-    if (
-      object.type === "interactive" &&
-      object.interactionAction === "open-container"
-    ) {
-      this.contents = object.contents.map((entry) => ({
-        ...entry,
-      }));
-    }
+    this.applyRuntimeState(runtimeState);
 
     this.view.setOpen(this.state.isOpen);
   }
@@ -75,6 +69,27 @@ export class WorldObjectController {
     this.view.setOpen(true);
 
     return true;
+  }
+
+  applyRuntimeState(runtimeState?: IWorldObjectRuntimeState) {
+    this.state = {
+      isOpen: runtimeState?.isOpen ?? false,
+    };
+
+    if (
+      this.object.type === "interactive" &&
+      this.object.interactionAction === "open-container"
+    ) {
+      const removedItemIds = runtimeState?.removedItemIds ?? [];
+
+      this.contents = this.object.contents
+        .filter((entry) => !removedItemIds.includes(entry.item.id))
+        .map((entry) => ({
+          ...entry,
+        }));
+    }
+
+    this.view.setOpen(this.state.isOpen);
   }
 
   takeItem(itemId: string, quantity = 1): IContainerItem | null {

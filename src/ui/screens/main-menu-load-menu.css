@@ -1,0 +1,157 @@
+.main-menu-load-overlay {
+  position: fixed;
+  inset: 0;
+
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 32px;
+
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.main-menu-load {
+  width: min(620px, 100%);
+
+  padding: 24px;
+
+  border: 1px solid #3d3d3d;
+  border-radius: 18px;
+
+  background: #191919;
+
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+
+.main-menu-load__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 24px;
+}
+
+.main-menu-load__title {
+  margin: 0;
+
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.main-menu-load__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 36px;
+  height: 36px;
+
+  padding: 0;
+
+  border: 1px solid #3f3f3f;
+  border-radius: 8px;
+
+  color: #d7d7d7;
+  background: #242424;
+
+  font-size: 22px;
+
+  cursor: pointer;
+
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+.main-menu-load__close:hover {
+  border-color: #666;
+  background: #303030;
+}
+
+.main-menu-load__loading {
+  margin: 0;
+
+  color: #999;
+}
+
+.main-menu-load__slots {
+  display: flex;
+  flex-direction: column;
+
+  gap: 12px;
+}
+
+.main-menu-load__slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  width: 100%;
+  min-height: 76px;
+
+  padding: 16px;
+
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+
+  color: inherit;
+  background: #222;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    opacity 150ms ease;
+}
+
+.main-menu-load__slot:hover:not(:disabled) {
+  border-color: #5a5a5a;
+  background: #292929;
+}
+
+.main-menu-load__slot:disabled {
+  opacity: 0.5;
+
+  cursor: default;
+}
+
+.main-menu-load__slot-content {
+  min-width: 0;
+}
+
+.main-menu-load__slot-title {
+  display: block;
+
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.main-menu-load__slot-description {
+  margin-top: 6px;
+
+  color: #999;
+
+  font-size: 13px;
+}
+
+.main-menu-load__slot-description--corrupted {
+  color: #d36b6b;
+}
+
+.main-menu-load__slot-date {
+  flex-shrink: 0;
+
+  color: #aaa;
+
+  font-size: 12px;
+  text-align: right;
+}

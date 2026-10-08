@@ -9,6 +9,16 @@ export class InventoryController {
     }));
   }
 
+  setItems(items: IContainerItem[]) {
+    this.items = items.map((entry) => ({
+      ...entry,
+    }));
+  }
+
+  clear() {
+    this.items = [];
+  }
+
   addItem(entry: IContainerItem) {
     const existingItem = this.items.find(
       (item) => item.item.id === entry.item.id,

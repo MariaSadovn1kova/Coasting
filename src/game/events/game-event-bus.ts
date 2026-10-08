@@ -26,6 +26,8 @@ interface IGameEventMap {
   "container-take-all": IContainerTakeAllPayload;
 
   "container-close": undefined;
+
+  "save-menu-close": undefined;
 }
 
 type TGameEvent = keyof IGameEventMap;
