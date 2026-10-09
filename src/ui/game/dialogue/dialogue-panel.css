@@ -1,0 +1,163 @@
+.dialogue-overlay {
+  position: absolute;
+  inset: 0;
+
+  z-index: 130;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  padding: 32px;
+
+  pointer-events: none;
+}
+
+.dialogue-panel {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+
+  gap: 20px;
+
+  width: min(900px, 100%);
+
+  padding: 20px;
+
+  border: 1px solid #3d3d3d;
+  border-radius: 18px;
+
+  background: rgba(20, 20, 20, 0.96);
+
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+
+  pointer-events: auto;
+}
+
+.dialogue-panel__portrait {
+  overflow: hidden;
+
+  width: 100%;
+  aspect-ratio: 1 / 1;
+
+  border-radius: 14px;
+
+  background: #252525;
+}
+
+.dialogue-panel__portrait-image {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.dialogue-panel__content {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+.dialogue-panel__name {
+  margin-bottom: 12px;
+
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.dialogue-panel__text {
+  min-height: 72px;
+
+  margin: 0;
+
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+.dialogue-panel__continue {
+  align-self: flex-end;
+
+  margin-top: 18px;
+
+  min-height: 40px;
+  padding: 0 18px;
+
+  border: 1px solid #444;
+  border-radius: 8px;
+
+  color: #f5f5f5;
+  background: #292929;
+
+  cursor: pointer;
+
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+.dialogue-panel__continue:hover {
+  border-color: #666;
+  background: #343434;
+}
+
+.dialogue-panel__choices {
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+}
+
+.dialogue-panel__choice {
+  width: 100%;
+
+  padding: 14px;
+
+  border: 1px solid #3f3f3f;
+  border-radius: 10px;
+
+  color: #f5f5f5;
+  background: #242424;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+
+.dialogue-panel__choice:hover:not(.dialogue-panel__choice--selected) {
+  border-color: #666;
+  background: #303030;
+
+  transform: translateX(4px);
+}
+
+.dialogue-panel__choice:hover {
+  border-color: #666;
+  background: #303030;
+
+  transform: translateX(4px);
+}
+
+@media (max-width: 700px) {
+  .dialogue-overlay {
+    padding: 16px;
+  }
+
+  .dialogue-panel {
+    grid-template-columns: 110px minmax(0, 1fr);
+
+    gap: 14px;
+
+    padding: 16px;
+  }
+
+  .dialogue-panel__text {
+    font-size: 15px;
+  }
+}

@@ -33,6 +33,16 @@ import { SaveManager } from "../save/save-manager";
 import type { ISaveData } from "../save/save-data";
 import type { TSaveSlot } from "../save/save-slot";
 
+import { getDialogueById } from "../../content/dialogues/dialogue-registry";
+import { getNpcById } from "../../content/npcs/npc-registry";
+
+import { DialogueController } from "../dialogue/dialogue-controller";
+
+import { useDialogueStore } from "../store/use-dialogue-store";
+import { useNpcStateStore } from "../store/use-npc-state-store";
+
+import { NpcDialogueResolver } from "../npc/npc-dialogue-resolver";
+
 export class GameEngine {
   private player: PlayerController | null = null;
   private inventory: InventoryController | null = null;
@@ -175,8 +185,47 @@ export class GameEngine {
           break;
         }
 
-        case "talk":
+        case "talk": {
+          const npc = getNpcById(object.npcId);
+
+          if (!npc) {
+            console.warn(`NPC not found: ${object.npcId}`);
+
+            return;
+          }
+
+          const npcStateStore = useNpcStateStore.getState();
+
+          npcStateStore.initializeNpc(npc.id, npc.initialRelationship);
+
+          const npcState = npcStateStore.getNpcState(npc.id);
+
+          if (!npcState) {
+            return;
+          }
+
+          const dialogueResolver = new NpcDialogueResolver();
+
+          const dialogueId = dialogueResolver.resolve(npc, npcState);
+
+          const dialogue = getDialogueById(dialogueId);
+
+          if (!dialogue) {
+            console.warn(`Dialogue not found: ${dialogueId}`);
+
+            return;
+          }
+
+          const dialogueController = new DialogueController({
+            dialogue,
+          });
+
+          useDialogueStore
+            .getState()
+            .openDialogue(npc.id, dialogue.id, dialogueController);
+
           break;
+        }
 
         case "transition":
           break;

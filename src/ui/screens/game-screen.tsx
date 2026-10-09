@@ -6,6 +6,7 @@ import { testRoom } from "../../content/locations/test-room";
 
 import { useSaveMenuStore } from "../../game/store/use-save-menu-store";
 
+import { DialoguePanel } from "../game/dialogue/dialogue-panel";
 import { GameCanvas } from "../game/game-canvas";
 import { ContainerPanel } from "../game/inventory/container-panel";
 import { InventoryPanel } from "../game/inventory/inventory-panel";
@@ -75,6 +76,8 @@ export function GameScreen() {
       <ContainerPanel />
 
       <SaveMenu />
+
+      <DialoguePanel />
     </main>
   );
 }

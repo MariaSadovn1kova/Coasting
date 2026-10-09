@@ -2,6 +2,7 @@ import type { IContainerItem } from "../inventory/container-content";
 import type { IGridPosition } from "../world/grid-position";
 
 import { useWorldStateStore } from "../store/use-world-state-store";
+import { useNpcStateStore } from "../store/use-npc-state-store";
 
 import {
   inventoryFromSaveData,
@@ -38,6 +39,7 @@ export class SaveManager {
     const now = new Date().toISOString();
 
     const world = useWorldStateStore.getState().world;
+    const npcs = useNpcStateStore.getState().npcs;
 
     return {
       version: 1,
@@ -56,6 +58,7 @@ export class SaveManager {
       inventory: inventoryToSaveData(inventory),
 
       world: structuredClone(world),
+      npcs: structuredClone(npcs),
     };
   }
 
@@ -134,6 +137,7 @@ export class SaveManager {
     const saveData = await this.storage.load(slot);
 
     useWorldStateStore.getState().setWorld(saveData.world);
+    useNpcStateStore.getState().setNpcStates(saveData.npcs ?? {});
 
     const inventory = inventoryFromSaveData(saveData.inventory);
 

@@ -33,6 +33,8 @@ export interface IContainerWorldObject extends IBaseInteractiveWorldObject {
 
 export interface ITalkWorldObject extends IBaseInteractiveWorldObject {
   interactionAction: "talk";
+
+  npcId: string;
 }
 
 export interface ITransitionWorldObject extends IBaseInteractiveWorldObject {

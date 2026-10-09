@@ -53,4 +53,42 @@ export const en = {
     empty: "Empty slot",
     corrupted: "Corrupted save",
   },
+
+  characters: {
+    luna: {
+      name: "Luna",
+    },
+  },
+
+  dialogues: {
+    lunaIntroduction: {
+      start: "You actually came over... I thought you'd just walk past.",
+
+      sad: "Don't mind me. Today just isn't the best day.",
+
+      choices: {
+        comfort: "Do you want to tell me what happened?",
+
+        leaveAlone: "Alright. I'll leave you alone.",
+      },
+
+      comfortResult: "Thank you. Maybe... someday I'll actually tell you.",
+
+      leaveResult: "Yeah. Maybe that's for the best.",
+    },
+
+    lunaAfterComfort: {
+      start:
+        "You came back... Thank you for not turning away from me last time.",
+    },
+
+    lunaAfterLeave: {
+      start: "You're here again. I thought you'd rather keep your distance.",
+    },
+
+    lunaRepeat: {
+      start:
+        "We've already talked about the important things... But I don't mind if you just stay for a while.",
+    },
+  },
 } as const;

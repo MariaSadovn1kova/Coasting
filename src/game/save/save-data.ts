@@ -1,3 +1,4 @@
+import type { TNpcRuntimeStateMap } from "../npc/npc-state";
 import type { IGridPosition } from "../world/grid-position";
 import type { IWorldRuntimeState } from "../world/world-state";
 
@@ -22,4 +23,6 @@ export interface ISaveData {
   inventory: IInventorySaveItem[];
 
   world: IWorldRuntimeState;
+
+  npcs: TNpcRuntimeStateMap;
 }
