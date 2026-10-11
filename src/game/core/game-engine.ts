@@ -439,7 +439,14 @@ export class GameEngine {
 
     app.ticker.add((ticker) => {
       if (!gamePauseController.isPaused()) {
-        player.update(ticker.deltaMS, GAME_CONFIG.player.moveSpeed);
+        const isRunning =
+          keyboard.isPressed("ShiftLeft") || keyboard.isPressed("ShiftRight");
+
+        const moveSpeed =
+          GAME_CONFIG.player.moveSpeed *
+          (isRunning ? GAME_CONFIG.player.runMultiplier : 1);
+
+        player.update(ticker.deltaMS, moveSpeed);
 
         this.updateMovement(player, keyboard);
       }

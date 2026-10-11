@@ -20,6 +20,9 @@ export const GAME_CONFIG = {
 
   player: {
     moveSpeed: 4,
+
     movementStep: 0.25,
+
+    runMultiplier: 1.8,
   },
 } as const;
