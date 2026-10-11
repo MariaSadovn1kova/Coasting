@@ -1,4 +1,27 @@
 export const en = {
+  startup: {
+    studioAlt: "Studio logo",
+    studioName: "Studio Name",
+
+    disclaimer: {
+      title: "Warning",
+
+      paragraph1:
+        "Coasting is a non-commercial amateur project currently under development.",
+
+      paragraph2:
+        "The software is provided as is. Although the application is not intended to make system-level changes or affect the operation of your device, software errors cannot be completely ruled out.",
+
+      paragraph3:
+        "It is recommended not to use experimental builds on devices containing critical data without proper backups.",
+
+      paragraph4:
+        "By continuing, you confirm that you understand the experimental nature of the current version.",
+
+      continue: "Continue",
+    },
+  },
+
   common: {
     back: "Back",
     continue: "Continue",
