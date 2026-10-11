@@ -1,5 +1,6 @@
 import { Container, Graphics } from "pixi.js";
 
+import { createDoorView } from "./create-door-view";
 import { getIsoDepth } from "./depth";
 import { worldToIso } from "./iso";
 
@@ -21,6 +22,13 @@ export function createWorldObjectView(object: IWorldObject): IWorldObjectView {
     object.interactionAction === "open-container"
   ) {
     return createContainerView(object);
+  }
+
+  if (
+    object.type === "interactive" &&
+    object.interactionAction === "transition"
+  ) {
+    return createTransitionView(object);
   }
 
   return createDefaultObjectView(object);
@@ -65,9 +73,7 @@ function createNpcView(object: IWorldObject): IWorldObjectView {
   return {
     container,
 
-    setOpen: () => {
-      // NPC не имеет состояния открытия.
-    },
+    setOpen: () => {},
   };
 }
 
@@ -139,6 +145,32 @@ function createContainerView(object: IWorldObject): IWorldObjectView {
   };
 }
 
+function createTransitionView(
+  object: Extract<
+    IWorldObject,
+    {
+      type: "interactive";
+      interactionAction: "transition";
+    }
+  >,
+): IWorldObjectView {
+  const container = new Container();
+
+  const doorView = createDoorView({
+    object,
+  });
+
+  container.addChild(doorView);
+
+  applyObjectPosition(container, object);
+
+  return {
+    container,
+
+    setOpen: () => {},
+  };
+}
+
 function createDefaultObjectView(object: IWorldObject): IWorldObjectView {
   const container = new Container();
 
@@ -160,9 +192,7 @@ function createDefaultObjectView(object: IWorldObject): IWorldObjectView {
   return {
     container,
 
-    setOpen: () => {
-      // Обычные объекты не открываются.
-    },
+    setOpen: () => {},
   };
 }
 

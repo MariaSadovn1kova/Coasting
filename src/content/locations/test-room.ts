@@ -2,6 +2,7 @@ import type { ILocation } from "../../game/world/location";
 
 import { lunaWorldObject } from "../objects/luna-world-object";
 import { testChest } from "../objects/test-chest";
+import { testRoomDoor } from "../objects/test-room-door";
 
 import { createRoomWalls } from "../../game/world/create-room-walls";
 
@@ -42,5 +43,5 @@ export const testRoom: ILocation = {
     ],
   }),
 
-  objects: [testChest, lunaWorldObject],
+  objects: [testChest, lunaWorldObject, testRoomDoor],
 };

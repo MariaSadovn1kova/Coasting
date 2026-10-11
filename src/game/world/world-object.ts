@@ -39,6 +39,12 @@ export interface ITalkWorldObject extends IBaseInteractiveWorldObject {
 
 export interface ITransitionWorldObject extends IBaseInteractiveWorldObject {
   interactionAction: "transition";
+
+  wallSide: "left" | "right";
+
+  targetLocationId: string;
+
+  targetPosition: IGridPosition;
 }
 
 export interface IInspectWorldObject extends IBaseInteractiveWorldObject {
