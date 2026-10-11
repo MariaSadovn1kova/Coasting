@@ -7,6 +7,52 @@ export class CollisionSystem {
     this.location = location;
   }
 
+  private isWallBlockingMove(
+    fromX: number,
+    fromY: number,
+    toX: number,
+    toY: number,
+  ) {
+    const walls =
+      this.location.walls?.filter((wall) => wall.blocksMovement !== false) ??
+      [];
+
+    const hasWall = (x: number, y: number, side: "left" | "right") =>
+      walls.some(
+        (wall) =>
+          wall.position.x === x && wall.position.y === y && wall.side === side,
+      );
+
+    const deltaX = toX - fromX;
+    const deltaY = toY - fromY;
+
+    if (deltaX === -1 && deltaY === -1) {
+      return hasWall(fromX, fromY, "left") || hasWall(fromX, fromY, "right");
+    }
+
+    if (deltaX === 1 && deltaY === 1) {
+      return hasWall(toX, toY, "left") || hasWall(toX, toY, "right");
+    }
+
+    if (deltaX === -1 && deltaY === 1) {
+      return hasWall(fromX, fromY, "left") || hasWall(toX, toY, "right");
+    }
+
+    if (deltaX === 1 && deltaY === -1) {
+      return hasWall(fromX, fromY, "right") || hasWall(toX, toY, "left");
+    }
+
+    return false;
+  }
+
+  canMove(fromX: number, fromY: number, toX: number, toY: number) {
+    if (!this.canMoveTo(toX, toY)) {
+      return false;
+    }
+
+    return !this.isWallBlockingMove(fromX, fromY, toX, toY);
+  }
+
   canMoveTo(x: number, y: number) {
     if (this.isOutsideLocation(x, y)) {
       return false;

@@ -15,10 +15,20 @@
         "title": "Coasting",
         "width": 1280,
         "height": 720,
+
         "minWidth": 1280,
         "minHeight": 720,
+
+        "maxWidth": 1280,
+        "maxHeight": 720,
+
         "resizable": false,
-        "fullscreen": false
+        "maximizable": false,
+
+        "fullscreen": false,
+        "maximized": false,
+
+        "center": true
       }
     ],
     "security": {

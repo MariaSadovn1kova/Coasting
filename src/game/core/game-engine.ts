@@ -43,8 +43,14 @@ import { useNpcStateStore } from "../store/use-npc-state-store";
 
 import { NpcDialogueResolver } from "../npc/npc-dialogue-resolver";
 
+import { CameraController } from "../camera/camera-controller";
+import { createLocationCameraBounds } from "../camera/create-location-camera-bounds";
+
+import { createWallsLayer } from "../world/create-walls-layer";
+
 export class GameEngine {
   private player: PlayerController | null = null;
+
   private inventory: InventoryController | null = null;
 
   private locationId: string | null = null;
@@ -52,6 +58,8 @@ export class GameEngine {
   private saveManager = new SaveManager();
 
   private app: Application | null = null;
+
+  private readonly worldContainer = new Container();
 
   private keyboard: KeyboardController | null = null;
 
@@ -84,9 +92,11 @@ export class GameEngine {
 
     element.appendChild(app.canvas);
 
-    const world = new Container();
+    this.worldContainer.sortableChildren = true;
 
     const grid = createIsometricGrid(location);
+
+    const walls = createWallsLayer(location);
 
     const entities = new Container();
 
@@ -119,6 +129,7 @@ export class GameEngine {
 
     const player = new PlayerController({
       view: playerView,
+
       position: {
         x: location.spawn.x,
         y: location.spawn.y,
@@ -179,6 +190,7 @@ export class GameEngine {
 
           gameEventBus.emit("container-opened", {
             containerId: object.id,
+
             items: controller.getContents(),
           });
 
@@ -291,6 +303,7 @@ export class GameEngine {
 
     const removeContainerTakeItemHandler = gameEventBus.on(
       "container-take-item",
+
       ({ containerId, itemId }) => {
         const controller = this.objectControllers.get(containerId);
 
@@ -329,6 +342,7 @@ export class GameEngine {
 
     const removeContainerTakeAllHandler = gameEventBus.on(
       "container-take-all",
+
       ({ containerId }) => {
         const controller = this.objectControllers.get(containerId);
 
@@ -355,6 +369,7 @@ export class GameEngine {
           removedItemIds: [
             ...new Set([
               ...removedItemIds,
+
               ...contents.map((entry) => entry.item.id),
             ]),
           ],
@@ -368,16 +383,38 @@ export class GameEngine {
 
     keyboard.mount();
 
-    world.addChild(grid);
-    world.addChild(entities);
+    this.worldContainer.addChild(grid);
 
-    world.position.set(app.screen.width / 2, app.screen.height / 4);
+    this.worldContainer.addChild(walls);
 
-    app.stage.addChild(world);
+    this.worldContainer.addChild(entities);
+
+    const cameraBounds = createLocationCameraBounds(location);
+
+    const camera = new CameraController({
+      world: this.worldContainer,
+
+      viewportWidth: app.screen.width,
+
+      viewportHeight: app.screen.height,
+
+      zoom: GAME_CONFIG.camera.zoom,
+
+      deadZoneWidth: app.screen.width * GAME_CONFIG.camera.deadZone.width,
+
+      deadZoneHeight: app.screen.height * GAME_CONFIG.camera.deadZone.height,
+
+      bounds: cameraBounds,
+    });
+
+    camera.focusOn(playerView.x, playerView.y);
+
+    app.stage.addChild(this.worldContainer);
 
     this.app = app;
 
     this.player = player;
+
     this.keyboard = keyboard;
 
     this.collisionSystem = collisionSystem;
@@ -401,13 +438,13 @@ export class GameEngine {
     this.removeContainerTakeAllHandler = removeContainerTakeAllHandler;
 
     app.ticker.add((ticker) => {
-      if (gamePauseController.isPaused()) {
-        return;
+      if (!gamePauseController.isPaused()) {
+        player.update(ticker.deltaMS, GAME_CONFIG.player.moveSpeed);
+
+        this.updateMovement(player, keyboard);
       }
 
-      player.update(ticker.deltaMS, GAME_CONFIG.player.moveSpeed);
-
-      this.updateMovement(player, keyboard);
+      camera.update(playerView.x, playerView.y);
     });
   }
 
@@ -551,7 +588,9 @@ export class GameEngine {
       return;
     }
 
-    if (!this.collisionSystem?.canMoveTo(x, y)) {
+    const position = player.getPosition();
+
+    if (!this.collisionSystem?.canMove(position.x, position.y, x, y)) {
       return;
     }
 
@@ -560,11 +599,15 @@ export class GameEngine {
 
   destroy() {
     this.removeInteractionHandler?.();
+
     this.removeInventoryHandler?.();
+
     this.removeEscapeHandler?.();
+
     this.removeQuickSaveHandler?.();
 
     this.removeContainerTakeItemHandler?.();
+
     this.removeContainerTakeAllHandler?.();
 
     this.keyboard?.destroy();
@@ -574,6 +617,12 @@ export class GameEngine {
     this.app?.destroy(true);
 
     this.app = null;
+
+    this.player = null;
+
+    this.inventory = null;
+
+    this.locationId = null;
 
     this.keyboard = null;
 
