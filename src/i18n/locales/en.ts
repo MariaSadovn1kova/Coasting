@@ -60,6 +60,14 @@ export const en = {
     },
   },
 
+  interaction: {
+    interact: "Interact",
+    talk: "Talk",
+    open: "Open",
+    enter: "Enter",
+    inspect: "Inspect",
+  },
+
   dialogues: {
     lunaIntroduction: {
       start: "You actually came over... I thought you'd just walk past.",

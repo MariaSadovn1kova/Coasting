@@ -13,6 +13,7 @@ import { InventoryPanel } from "../game/inventory/inventory-panel";
 import { resetGameUi } from "../game/reset-game-ui";
 import { SaveMenu } from "../game/save/save-menu";
 import { useGameUiEvents } from "../game/use-game-ui-events";
+import { InteractionHint } from "../game/interaction/interaction-hint";
 
 export function GameScreen() {
   const { t } = useTranslation();
@@ -70,6 +71,8 @@ export function GameScreen() {
           {t("game.backToMenu")}
         </button>
       </div>
+
+      <InteractionHint />
 
       <InventoryPanel />
 

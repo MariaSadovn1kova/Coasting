@@ -48,6 +48,8 @@ import { createLocationCameraBounds } from "../camera/create-location-camera-bou
 
 import { createWallsLayer } from "../world/create-walls-layer";
 
+import { useInteractionHintStore } from "../store/use-interaction-hint-store";
+
 export class GameEngine {
   private player: PlayerController | null = null;
 
@@ -451,6 +453,39 @@ export class GameEngine {
         this.updateMovement(player, keyboard);
       }
 
+      const interactiveObject = interactionSystem.getInteractiveObjectInFront(
+        player.getPosition(),
+        player.getDirection(),
+      );
+
+      const interactionHintStore = useInteractionHintStore.getState();
+
+      if (interactiveObject && !gamePauseController.isPaused()) {
+        switch (interactiveObject.interactionAction) {
+          case "talk":
+            interactionHintStore.show("talk");
+
+            break;
+
+          case "open-container":
+            interactionHintStore.show("open");
+
+            break;
+
+          case "transition":
+            interactionHintStore.show("enter");
+
+            break;
+
+          case "inspect":
+            interactionHintStore.show("inspect");
+
+            break;
+        }
+      } else {
+        interactionHintStore.hide();
+      }
+
       camera.update(playerView.x, playerView.y);
     });
   }
@@ -652,6 +687,8 @@ export class GameEngine {
     this.removeContainerTakeItemHandler = null;
 
     this.removeContainerTakeAllHandler = null;
+
+    useInteractionHintStore.getState().hide();
 
     gamePauseController.clear();
   }

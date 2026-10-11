@@ -60,6 +60,14 @@ export const ru = {
     },
   },
 
+  interaction: {
+    interact: "Взаимодействовать",
+    talk: "Поговорить",
+    open: "Открыть",
+    enter: "Войти",
+    inspect: "Осмотреть",
+  },
+
   dialogues: {
     lunaIntroduction: {
       start: "Ты всё-таки подошёл... Я думала, просто пройдёшь мимо.",
