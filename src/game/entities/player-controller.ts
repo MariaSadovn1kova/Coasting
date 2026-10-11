@@ -1,61 +1,48 @@
 import type { Container } from "pixi.js";
 
-import type { TPlayerDirection } from "./player-direction";
-
 import { getIsoDepth } from "../world/depth";
+import type { IGridPosition } from "../world/grid-position";
 import { worldToIso } from "../world/iso";
 
-interface IPlayerPosition {
-  x: number;
-  y: number;
-}
+import type { TPlayerDirection } from "./player-direction";
 
-interface IPlayerControllerParams {
+interface IPlayerControllerOptions {
   view: Container;
-  position: IPlayerPosition;
-  direction?: TPlayerDirection;
+  position: IGridPosition;
 }
 
 export class PlayerController {
-  private view: Container;
+  private readonly view: Container;
 
-  private position: IPlayerPosition;
+  private position: IGridPosition;
 
-  private direction: TPlayerDirection;
+  private startPosition: IGridPosition | null = null;
 
-  private movementStart: IPlayerPosition;
-  private movementTarget: IPlayerPosition;
+  private targetPosition: IGridPosition | null = null;
 
-  private movementProgress = 1;
+  private moveProgress = 0;
 
-  constructor({ view, position, direction = "down" }: IPlayerControllerParams) {
+  private moveDistance = 0;
+
+  private direction: TPlayerDirection = "down";
+
+  constructor({ view, position }: IPlayerControllerOptions) {
     this.view = view;
 
     this.position = {
-      x: position.x,
-      y: position.y,
+      ...position,
     };
 
-    this.direction = direction;
-
-    this.movementStart = {
-      ...this.position,
-    };
-
-    this.movementTarget = {
-      ...this.position,
-    };
-
-    this.updateViewPosition(this.position);
+    this.updateViewPosition(position.x, position.y);
   }
 
-  getPosition() {
+  getPosition(): IGridPosition {
     return {
       ...this.position,
     };
   }
 
-  getDirection() {
+  getDirection(): TPlayerDirection {
     return this.direction;
   }
 
@@ -64,7 +51,62 @@ export class PlayerController {
   }
 
   isMoving() {
-    return this.movementProgress < 1;
+    return this.startPosition !== null && this.targetPosition !== null;
+  }
+
+  moveTo(x: number, y: number) {
+    if (this.isMoving()) {
+      return;
+    }
+
+    const distance = Math.hypot(x - this.position.x, y - this.position.y);
+
+    if (distance <= 0) {
+      return;
+    }
+
+    this.startPosition = {
+      ...this.position,
+    };
+
+    this.targetPosition = {
+      x,
+      y,
+    };
+
+    this.moveProgress = 0;
+
+    this.moveDistance = distance;
+  }
+
+  update(deltaMS: number, moveSpeed: number) {
+    if (!this.startPosition || !this.targetPosition) {
+      return;
+    }
+
+    if (this.moveDistance <= 0) {
+      this.finishMovement();
+
+      return;
+    }
+
+    this.moveProgress += ((deltaMS / 1000) * moveSpeed) / this.moveDistance;
+
+    const progress = Math.min(this.moveProgress, 1);
+
+    const x =
+      this.startPosition.x +
+      (this.targetPosition.x - this.startPosition.x) * progress;
+
+    const y =
+      this.startPosition.y +
+      (this.targetPosition.y - this.startPosition.y) * progress;
+
+    this.updateViewPosition(x, y);
+
+    if (this.moveProgress >= 1) {
+      this.finishMovement();
+    }
   }
 
   setPosition(x: number, y: number) {
@@ -73,76 +115,42 @@ export class PlayerController {
       y,
     };
 
-    this.movementStart = {
-      x,
-      y,
-    };
+    this.startPosition = null;
 
-    this.movementTarget = {
-      x,
-      y,
-    };
+    this.targetPosition = null;
 
-    this.movementProgress = 1;
+    this.moveProgress = 0;
 
-    this.updateViewPosition(this.position);
+    this.moveDistance = 0;
+
+    this.updateViewPosition(x, y);
   }
 
-  moveTo(x: number, y: number) {
-    if (this.isMoving()) {
+  private finishMovement() {
+    if (!this.targetPosition) {
       return;
     }
 
-    this.movementStart = {
-      ...this.position,
+    this.position = {
+      ...this.targetPosition,
     };
 
-    this.movementTarget = {
-      x,
-      y,
-    };
+    this.updateViewPosition(this.position.x, this.position.y);
 
-    this.movementProgress = 0;
+    this.startPosition = null;
+
+    this.targetPosition = null;
+
+    this.moveProgress = 0;
+
+    this.moveDistance = 0;
   }
 
-  update(deltaMs: number, moveSpeed: number) {
-    if (!this.isMoving()) {
-      return;
-    }
-
-    const movementDuration = 1000 / moveSpeed;
-
-    this.movementProgress += deltaMs / movementDuration;
-
-    const progress = Math.min(this.movementProgress, 1);
-
-    const x =
-      this.movementStart.x +
-      (this.movementTarget.x - this.movementStart.x) * progress;
-
-    const y =
-      this.movementStart.y +
-      (this.movementTarget.y - this.movementStart.y) * progress;
-
-    this.updateViewPosition({
-      x,
-      y,
-    });
-
-    if (progress === 1) {
-      this.position = {
-        ...this.movementTarget,
-      };
-
-      this.movementProgress = 1;
-    }
-  }
-
-  private updateViewPosition(position: IPlayerPosition) {
-    const isoPosition = worldToIso(position.x, position.y);
+  private updateViewPosition(x: number, y: number) {
+    const isoPosition = worldToIso(x, y);
 
     this.view.position.set(isoPosition.x, isoPosition.y);
 
-    this.view.zIndex = getIsoDepth(position.x, position.y);
+    this.view.zIndex = getIsoDepth(x, y);
   }
 }

@@ -548,34 +548,36 @@ export class GameEngine {
     y: number;
     direction: TPlayerDirection;
   } | null {
+    const step = GAME_CONFIG.player.movementStep;
+
     if (keyboard.isPressed("KeyW") || keyboard.isPressed("ArrowUp")) {
       return {
-        x: -1,
-        y: -1,
+        x: -step,
+        y: -step,
         direction: "up",
       };
     }
 
     if (keyboard.isPressed("KeyS") || keyboard.isPressed("ArrowDown")) {
       return {
-        x: 1,
-        y: 1,
+        x: step,
+        y: step,
         direction: "down",
       };
     }
 
     if (keyboard.isPressed("KeyA") || keyboard.isPressed("ArrowLeft")) {
       return {
-        x: -1,
-        y: 1,
+        x: -step,
+        y: step,
         direction: "left",
       };
     }
 
     if (keyboard.isPressed("KeyD") || keyboard.isPressed("ArrowRight")) {
       return {
-        x: 1,
-        y: -1,
+        x: step,
+        y: -step,
         direction: "right",
       };
     }

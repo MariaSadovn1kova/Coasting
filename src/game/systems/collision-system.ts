@@ -17,32 +17,57 @@ export class CollisionSystem {
       this.location.walls?.filter((wall) => wall.blocksMovement !== false) ??
       [];
 
-    const hasWall = (x: number, y: number, side: "left" | "right") =>
-      walls.some(
-        (wall) =>
-          wall.position.x === x && wall.position.y === y && wall.side === side,
-      );
+    return walls.some((wall) => {
+      if (wall.side === "left") {
+        const wallX = wall.position.x - 0.5;
 
-    const deltaX = toX - fromX;
-    const deltaY = toY - fromY;
+        const wallMinY = wall.position.y - 0.5;
 
-    if (deltaX === -1 && deltaY === -1) {
-      return hasWall(fromX, fromY, "left") || hasWall(fromX, fromY, "right");
-    }
+        const wallMaxY = wall.position.y + 0.5;
 
-    if (deltaX === 1 && deltaY === 1) {
-      return hasWall(toX, toY, "left") || hasWall(toX, toY, "right");
-    }
+        const deltaX = toX - fromX;
 
-    if (deltaX === -1 && deltaY === 1) {
-      return hasWall(fromX, fromY, "left") || hasWall(toX, toY, "right");
-    }
+        if (deltaX === 0) {
+          return false;
+        }
 
-    if (deltaX === 1 && deltaY === -1) {
-      return hasWall(fromX, fromY, "right") || hasWall(toX, toY, "left");
-    }
+        const intersection = (wallX - fromX) / deltaX;
 
-    return false;
+        if (intersection <= 0 || intersection > 1) {
+          return false;
+        }
+
+        const intersectionY = fromY + (toY - fromY) * intersection;
+
+        return intersectionY >= wallMinY && intersectionY <= wallMaxY;
+      }
+
+      if (wall.side === "right") {
+        const wallY = wall.position.y - 0.5;
+
+        const wallMinX = wall.position.x - 0.5;
+
+        const wallMaxX = wall.position.x + 0.5;
+
+        const deltaY = toY - fromY;
+
+        if (deltaY === 0) {
+          return false;
+        }
+
+        const intersection = (wallY - fromY) / deltaY;
+
+        if (intersection <= 0 || intersection > 1) {
+          return false;
+        }
+
+        const intersectionX = fromX + (toX - fromX) * intersection;
+
+        return intersectionX >= wallMinX && intersectionX <= wallMaxX;
+      }
+
+      return false;
+    });
   }
 
   canMove(fromX: number, fromY: number, toX: number, toY: number) {
@@ -53,8 +78,39 @@ export class CollisionSystem {
     return !this.isWallBlockingMove(fromX, fromY, toX, toY);
   }
 
+  private isInsideTile(x: number, y: number, tileX: number, tileY: number) {
+    const halfSize = 0.5;
+
+    return Math.abs(x - tileX) < halfSize && Math.abs(y - tileY) < halfSize;
+  }
+
+  private isInsideLocation(x: number, y: number) {
+    return (
+      x >= 0 &&
+      y >= 0 &&
+      x <= this.location.width - 1 &&
+      y <= this.location.height - 1
+    );
+  }
+
+  private isBlockedTile(x: number, y: number) {
+    return this.location.blockedTiles.some((tile) =>
+      this.isInsideTile(x, y, tile.x, tile.y),
+    );
+  }
+
+  private isBlockedByObject(x: number, y: number) {
+    return this.location.objects.some((object) => {
+      if (!object.blocksMovement) {
+        return false;
+      }
+
+      return this.isInsideTile(x, y, object.position.x, object.position.y);
+    });
+  }
+
   canMoveTo(x: number, y: number) {
-    if (this.isOutsideLocation(x, y)) {
+    if (!this.isInsideLocation(x, y)) {
       return false;
     }
 
@@ -67,26 +123,5 @@ export class CollisionSystem {
     }
 
     return true;
-  }
-
-  private isOutsideLocation(x: number, y: number) {
-    return (
-      x < 0 || y < 0 || x >= this.location.width || y >= this.location.height
-    );
-  }
-
-  private isBlockedTile(x: number, y: number) {
-    return this.location.blockedTiles.some(
-      (tile) => tile.x === x && tile.y === y,
-    );
-  }
-
-  private isBlockedByObject(x: number, y: number) {
-    return this.location.objects.some(
-      (object) =>
-        object.blocksMovement &&
-        object.position.x === x &&
-        object.position.y === y,
-    );
   }
 }

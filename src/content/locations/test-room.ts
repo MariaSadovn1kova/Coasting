@@ -5,8 +5,8 @@ import { testChest } from "../objects/test-chest";
 
 import { createRoomWalls } from "../../game/world/create-room-walls";
 
-const ROOM_WIDTH = 20;
-const ROOM_HEIGHT = 20;
+const ROOM_WIDTH = 15;
+const ROOM_HEIGHT = 15;
 
 export const testRoom: ILocation = {
   id: "test-room",

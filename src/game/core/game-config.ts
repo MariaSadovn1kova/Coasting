@@ -19,6 +19,7 @@ export const GAME_CONFIG = {
   },
 
   player: {
-    moveSpeed: 3,
+    moveSpeed: 4,
+    movementStep: 0.25,
   },
 } as const;
