@@ -1,3 +1,4 @@
+import type { IFloorConfig } from "./floor";
 import type { IGridPosition } from "./grid-position";
 import type { IWall } from "./wall";
 import type { IWorldObject } from "./world-object";
@@ -17,4 +18,6 @@ export interface ILocation {
   objects: IWorldObject[];
 
   walls?: IWall[];
+
+  floor?: IFloorConfig;
 }

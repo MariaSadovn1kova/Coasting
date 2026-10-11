@@ -96,7 +96,7 @@ export class GameEngine {
 
     this.worldContainer.sortableChildren = true;
 
-    const grid = createIsometricGrid(location);
+    const grid = await createIsometricGrid(location);
 
     const walls = createWallsLayer(location);
 
