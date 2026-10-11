@@ -26,6 +26,13 @@ interface INpcStateStore {
   resetNpcStates: () => void;
 }
 
+const MIN_RELATIONSHIP = -100;
+const MAX_RELATIONSHIP = 100;
+
+function clampRelationship(value: number) {
+  return Math.max(MIN_RELATIONSHIP, Math.min(MAX_RELATIONSHIP, value));
+}
+
 export const useNpcStateStore = create<INpcStateStore>((set, get) => ({
   npcs: {},
 
@@ -44,7 +51,7 @@ export const useNpcStateStore = create<INpcStateStore>((set, get) => ({
           ...state.npcs,
 
           [npcId]: {
-            relationship: initialRelationship,
+            relationship: clampRelationship(initialRelationship),
 
             choices: {},
 
@@ -71,7 +78,7 @@ export const useNpcStateStore = create<INpcStateStore>((set, get) => ({
 
           [npcId]: {
             ...npc,
-            relationship: value,
+            relationship: clampRelationship(value),
           },
         },
       };
@@ -93,7 +100,7 @@ export const useNpcStateStore = create<INpcStateStore>((set, get) => ({
           [npcId]: {
             ...npc,
 
-            relationship: npc.relationship + amount,
+            relationship: clampRelationship(npc.relationship + amount),
           },
         },
       };
