@@ -54,6 +54,12 @@ export const en = {
       name: "Old Key",
       description: "A worn key from an unknown lock.",
     },
+
+    lunaBrokenPendant: {
+      name: "Luna's Broken Pendant",
+      description:
+        "A small damaged pendant. It seems to have belonged to Luna.",
+    },
   },
 
   inventory: {
@@ -89,6 +95,7 @@ export const en = {
     open: "Open",
     enter: "Enter",
     inspect: "Inspect",
+    pickup: "Pickup",
   },
 
   dialogues: {
@@ -120,6 +127,12 @@ export const en = {
     lunaRepeat: {
       start:
         "We've already talked about the important things... But I don't mind if you just stay for a while.",
+    },
+
+    lunaPendant: {
+      playerQuestion: "Does this happen to be yours?",
+      lunaSurprised: "Wait... Where did you find this?",
+      lunaThanks: "I thought I'd lost it forever. Thank you.",
     },
   },
 } as const;

@@ -1,22 +1,32 @@
-import { useNpcStateStore } from "../store/use-npc-state-store";
-
 import type {
   IDialogue,
   IDialogueChoiceOption,
   TDialogueNode,
 } from "./dialogue";
 
-interface IDialogueControllerParams {
+import { GameEffectApplier } from "../effects/game-effect-applier";
+import type { IGameEffectContext } from "../effects/game-effect-context";
+
+import { useNpcStateStore } from "../store/use-npc-state-store";
+
+interface IDialogueControllerOptions {
   dialogue: IDialogue;
+  effectContext: IGameEffectContext;
 }
 
 export class DialogueController {
-  private dialogue: IDialogue;
+  private readonly dialogue: IDialogue;
+
+  private readonly effectContext: IGameEffectContext;
+
+  private readonly effectApplier = new GameEffectApplier();
 
   private currentNodeId: string;
 
-  constructor({ dialogue }: IDialogueControllerParams) {
+  constructor({ dialogue, effectContext }: IDialogueControllerOptions) {
     this.dialogue = dialogue;
+
+    this.effectContext = effectContext;
 
     this.currentNodeId = dialogue.startNodeId;
   }
@@ -29,8 +39,10 @@ export class DialogueController {
     return this.dialogue.nodes[this.currentNodeId] ?? null;
   }
 
-  goToNode(nodeId: string) {
-    if (!this.dialogue.nodes[nodeId]) {
+  goToNode(nodeId: string): boolean {
+    const node = this.dialogue.nodes[nodeId];
+
+    if (!node) {
       return false;
     }
 
@@ -39,14 +51,10 @@ export class DialogueController {
     return true;
   }
 
-  advance() {
+  advance(): boolean {
     const node = this.getCurrentNode();
 
-    if (!node) {
-      return false;
-    }
-
-    if (node.type !== "line") {
+    if (!node || node.type !== "line") {
       return false;
     }
 
@@ -56,57 +64,45 @@ export class DialogueController {
       return false;
     }
 
-    this.currentNodeId = node.nextNodeId;
-
-    return true;
+    return this.goToNode(node.nextNodeId);
   }
 
-  choose(option: IDialogueChoiceOption) {
+  choose(option: IDialogueChoiceOption): boolean {
     const node = this.getCurrentNode();
 
     if (!node || node.type !== "choice") {
       return false;
     }
 
-    const validOption = node.options.find(
+    const selectedOption = node.options.find(
       (currentOption) => currentOption.id === option.id,
     );
 
-    if (!validOption) {
+    if (!selectedOption) {
       return false;
     }
 
-    const npcState = useNpcStateStore.getState();
+    useNpcStateStore
+      .getState()
+      .setChoice(this.dialogue.npcId, node.choiceId, selectedOption.id);
 
-    npcState.setChoice(this.dialogue.npcId, node.choiceId, validOption.id);
+    this.effectApplier.apply(selectedOption.effects, this.effectContext);
 
-    if (validOption.effects?.relationshipChange) {
-      npcState.changeRelationship(
-        this.dialogue.npcId,
-        validOption.effects.relationshipChange,
-      );
-    }
-
-    if (validOption.effects?.setFlags) {
-      Object.entries(validOption.effects.setFlags).forEach(
-        ([flagId, value]) => {
-          npcState.setFlag(this.dialogue.npcId, flagId, value);
-        },
-      );
-    }
-
-    if (!validOption.nextNodeId) {
+    if (!selectedOption.nextNodeId) {
       this.completeDialogue();
 
       return false;
     }
 
-    this.currentNodeId = validOption.nextNodeId;
-
-    return true;
+    return this.goToNode(selectedOption.nextNodeId);
   }
 
   private completeDialogue() {
+    this.effectApplier.apply(
+      this.dialogue.completionEffects,
+      this.effectContext,
+    );
+
     useNpcStateStore
       .getState()
       .completeDialogue(this.dialogue.npcId, this.dialogue.id);

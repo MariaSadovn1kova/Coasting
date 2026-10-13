@@ -2,6 +2,7 @@ import type { IFloorConfig } from "./floor";
 import type { IGridPosition } from "./grid-position";
 import type { IWall } from "./wall";
 import type { IWorldObject } from "./world-object";
+import type { IGameConditionGroup } from "../conditions/game-condition";
 
 export interface ILocation {
   id: string;
@@ -20,4 +21,6 @@ export interface ILocation {
   walls?: IWall[];
 
   floor?: IFloorConfig;
+
+  objectVisibility?: Record<string, IGameConditionGroup>;
 }

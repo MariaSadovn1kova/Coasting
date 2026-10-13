@@ -1,6 +1,11 @@
 import { create } from "zustand";
 
-export type TInteractionHintAction = "talk" | "open" | "enter" | "inspect";
+export type TInteractionHintAction =
+  | "talk"
+  | "open"
+  | "enter"
+  | "inspect"
+  | "pickup";
 
 interface IInteractionHintStore {
   isVisible: boolean;

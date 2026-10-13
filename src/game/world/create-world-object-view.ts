@@ -4,7 +4,7 @@ import { createDoorView } from "./create-door-view";
 import { getIsoDepth } from "./depth";
 import { worldToIso } from "./iso";
 
-import type { IWorldObject } from "./world-object";
+import type { IWorldObject, IPickupWorldObject } from "./world-object";
 
 export interface IWorldObjectView {
   container: Container;
@@ -31,7 +31,45 @@ export function createWorldObjectView(object: IWorldObject): IWorldObjectView {
     return createTransitionView(object);
   }
 
+  if (object.type === "interactive" && object.interactionAction === "pickup") {
+    return createPickupView(object);
+  }
+
   return createDefaultObjectView(object);
+}
+
+function createPickupView(object: IPickupWorldObject): IWorldObjectView {
+  const container = new Container();
+
+  const shadow = new Graphics().ellipse(0, 4, 13, 6).fill({
+    color: 0x000000,
+    alpha: 0.25,
+  });
+
+  const pendant = new Graphics().circle(0, -4, 7).fill(0xd6b86a).stroke({
+    color: 0x8c7137,
+    width: 2,
+  });
+
+  const center = new Graphics().circle(0, -4, 2).fill(0x6d8ba8);
+
+  const chain = new Graphics()
+    .moveTo(-6, -8)
+    .quadraticCurveTo(0, -18, 6, -8)
+    .stroke({
+      color: 0xb99b55,
+      width: 2,
+    });
+
+  container.addChild(shadow, chain, pendant, center);
+
+  applyObjectPosition(container, object);
+
+  return {
+    container,
+
+    setOpen: () => {},
+  };
 }
 
 function createNpcView(object: IWorldObject): IWorldObjectView {

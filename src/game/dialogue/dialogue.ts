@@ -1,10 +1,6 @@
-import type { TNpcEmotion } from "../npc/npc";
+import type { TGameEffect } from "../effects/game-effect";
 
-export interface IDialogueEffect {
-  relationshipChange?: number;
-
-  setFlags?: Record<string, boolean>;
-}
+export type TDialogueEmotion = "neutral" | "happy" | "sad" | "angry";
 
 export interface IDialogueLineNode {
   id: string;
@@ -15,9 +11,9 @@ export interface IDialogueLineNode {
 
   textKey: string;
 
-  emotion: TNpcEmotion;
+  emotion: TDialogueEmotion;
 
-  nextNodeId: string | null;
+  nextNodeId?: string;
 }
 
 export interface IDialogueChoiceOption {
@@ -25,9 +21,9 @@ export interface IDialogueChoiceOption {
 
   textKey: string;
 
-  nextNodeId: string | null;
+  nextNodeId?: string;
 
-  effects?: IDialogueEffect;
+  effects?: TGameEffect[];
 }
 
 export interface IDialogueChoiceNode {
@@ -50,4 +46,6 @@ export interface IDialogue {
   startNodeId: string;
 
   nodes: Record<string, TDialogueNode>;
+
+  completionEffects?: TGameEffect[];
 }

@@ -6,6 +6,7 @@ import { useNpcStateStore } from "../store/use-npc-state-store";
 import { usePendingLoadStore } from "../store/use-pending-load-store";
 import { useSaveMenuStore } from "../store/use-save-menu-store";
 import { useWorldStateStore } from "../store/use-world-state-store";
+import { useGameFactsStore } from "../store/use-game-facts-store";
 
 import { gamePauseController } from "../core/game-pause-controller";
 
@@ -25,6 +26,8 @@ export function resetGameSession() {
   useContainerStore.getState().closeContainer();
 
   useSaveMenuStore.getState().closeSaveMenu();
+
+  useGameFactsStore.getState().clearFacts();
 
   gamePauseController.clear();
 }

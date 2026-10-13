@@ -8,17 +8,20 @@ import { lunaIntroductionDialogue } from "./luna-introduction";
 
 import { lunaRepeatDialogue } from "./luna-repeat";
 
+import { lunaPendantDialogue } from "./luna-pendant";
+
 const dialogues: IDialogue[] = [
   lunaIntroductionDialogue,
   lunaAfterComfortDialogue,
   lunaAfterLeaveDialogue,
   lunaRepeatDialogue,
+  lunaPendantDialogue,
 ];
 
-const dialogueRegistry = new Map(
+const dialogueMap = new Map(
   dialogues.map((dialogue) => [dialogue.id, dialogue]),
 );
 
-export function getDialogueById(dialogueId: string): IDialogue | null {
-  return dialogueRegistry.get(dialogueId) ?? null;
+export function getDialogueById(dialogueId: string): IDialogue | undefined {
+  return dialogueMap.get(dialogueId);
 }

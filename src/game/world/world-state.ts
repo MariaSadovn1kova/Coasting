@@ -1,6 +1,7 @@
 export interface IWorldObjectRuntimeState {
   isOpen?: boolean;
   removedItemIds?: string[];
+  isCollected?: boolean;
 }
 
 export interface ILocationRuntimeState {

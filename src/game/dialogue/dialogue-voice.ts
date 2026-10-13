@@ -16,7 +16,7 @@ export class DialogueVoice {
     this.sound = new Howl({
       src: [src],
 
-      volume: 0.45,
+      volume: 0.1,
 
       preload: true,
     });

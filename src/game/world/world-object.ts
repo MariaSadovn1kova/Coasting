@@ -1,5 +1,8 @@
 import type { TInteractionAction } from "../interaction/interaction-action";
 import type { TContainerContent } from "../inventory/container-content";
+import type { IItem } from "../inventory/item";
+
+import type { TGameEffect } from "../effects/game-effect";
 
 import type { IGridPosition } from "./grid-position";
 
@@ -31,6 +34,16 @@ export interface IContainerWorldObject extends IBaseInteractiveWorldObject {
   contents: TContainerContent;
 }
 
+export interface IPickupWorldObject extends IBaseInteractiveWorldObject {
+  interactionAction: "pickup";
+
+  item: IItem;
+
+  quantity?: number;
+
+  effects?: TGameEffect[];
+}
+
 export interface ITalkWorldObject extends IBaseInteractiveWorldObject {
   interactionAction: "talk";
 
@@ -53,6 +66,7 @@ export interface IInspectWorldObject extends IBaseInteractiveWorldObject {
 
 export type IInteractiveWorldObject =
   | IContainerWorldObject
+  | IPickupWorldObject
   | ITalkWorldObject
   | ITransitionWorldObject
   | IInspectWorldObject;

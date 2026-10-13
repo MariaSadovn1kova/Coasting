@@ -3,6 +3,7 @@ import type { IGridPosition } from "../world/grid-position";
 
 import { useWorldStateStore } from "../store/use-world-state-store";
 import { useNpcStateStore } from "../store/use-npc-state-store";
+import { useGameFactsStore } from "../store/use-game-facts-store";
 
 import {
   inventoryFromSaveData,
@@ -40,6 +41,7 @@ export class SaveManager {
 
     const world = useWorldStateStore.getState().world;
     const npcs = useNpcStateStore.getState().npcs;
+    const gameFacts = useGameFactsStore.getState().facts;
 
     return {
       version: 1,
@@ -59,6 +61,7 @@ export class SaveManager {
 
       world: structuredClone(world),
       npcs: structuredClone(npcs),
+      gameFacts: structuredClone(gameFacts),
     };
   }
 
@@ -138,6 +141,7 @@ export class SaveManager {
 
     useWorldStateStore.getState().setWorld(saveData.world);
     useNpcStateStore.getState().setNpcStates(saveData.npcs ?? {});
+    useGameFactsStore.getState().setFacts(saveData.gameFacts ?? {});
 
     const inventory = inventoryFromSaveData(saveData.inventory);
 

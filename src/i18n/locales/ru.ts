@@ -54,6 +54,11 @@ export const ru = {
       name: "Старый ключ",
       description: "Потёртый ключ неизвестно от какого замка.",
     },
+
+    lunaBrokenPendant: {
+      name: "Сломанный кулон Луны",
+      description: "Небольшой повреждённый кулон. Похоже, он принадлежал Луне.",
+    },
   },
 
   inventory: {
@@ -89,6 +94,7 @@ export const ru = {
     open: "Открыть",
     enter: "Войти",
     inspect: "Осмотреть",
+    pickup: "Взять",
   },
 
   dialogues: {
@@ -120,6 +126,12 @@ export const ru = {
     lunaRepeat: {
       start:
         "Мы уже поговорили обо всём важном... Но я не против, если ты просто побудешь рядом.",
+    },
+
+    lunaPendant: {
+      playerQuestion: "Это случайно не твоё?",
+      lunaSurprised: "Подожди... Где ты это нашёл?",
+      lunaThanks: "Я думала, что потеряла его навсегда. Спасибо.",
     },
   },
 } as const;

@@ -2,6 +2,8 @@ import type { TNpcRuntimeStateMap } from "../npc/npc-state";
 import type { IGridPosition } from "../world/grid-position";
 import type { IWorldRuntimeState } from "../world/world-state";
 
+import type { TGameFacts } from "../facts/game-fact";
+
 export interface IInventorySaveItem {
   itemId: string;
   quantity: number;
@@ -25,4 +27,6 @@ export interface ISaveData {
   world: IWorldRuntimeState;
 
   npcs: TNpcRuntimeStateMap;
+
+  gameFacts?: TGameFacts;
 }

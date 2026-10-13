@@ -53,4 +53,42 @@ export class InventoryController {
 
     return entry?.quantity ?? 0;
   }
+
+  removeItem(itemId: string, quantity = 1) {
+    if (quantity <= 0) {
+      return 0;
+    }
+
+    let remaining = quantity;
+
+    let removed = 0;
+
+    this.items = this.items.flatMap((entry) => {
+      if (entry.item.id !== itemId || remaining <= 0) {
+        return [entry];
+      }
+
+      const amount = Math.min(entry.quantity, remaining);
+
+      remaining -= amount;
+
+      removed += amount;
+
+      const nextQuantity = entry.quantity - amount;
+
+      if (nextQuantity <= 0) {
+        return [];
+      }
+
+      return [
+        {
+          ...entry,
+
+          quantity: nextQuantity,
+        },
+      ];
+    });
+
+    return removed;
+  }
 }

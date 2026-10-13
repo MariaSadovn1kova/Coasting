@@ -78,6 +78,7 @@ export const useNpcStateStore = create<INpcStateStore>((set, get) => ({
 
           [npcId]: {
             ...npc,
+
             relationship: clampRelationship(value),
           },
         },

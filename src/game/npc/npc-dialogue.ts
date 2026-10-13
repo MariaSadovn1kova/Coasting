@@ -1,3 +1,5 @@
+import type { IGameConditionGroup } from "../conditions/game-condition";
+
 export interface INpcDialogueChoiceCondition {
   choiceId: string;
   optionId: string;
@@ -25,4 +27,6 @@ export interface INpcDialogueRule {
   dialogueId: string;
 
   conditions?: INpcDialogueCondition[];
+
+  gameConditions?: IGameConditionGroup;
 }

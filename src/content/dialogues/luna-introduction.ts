@@ -51,13 +51,23 @@ export const lunaIntroductionDialogue: IDialogue = {
 
           nextNodeId: "comfort-result",
 
-          effects: {
-            relationshipChange: 2,
+          effects: [
+            {
+              type: "change-relationship",
 
-            setFlags: {
-              "comforted-luna": true,
+              npcId: "luna",
+
+              amount: 2,
             },
-          },
+
+            {
+              type: "set-fact",
+
+              key: "luna.comforted",
+
+              value: true,
+            },
+          ],
         },
 
         {
@@ -67,9 +77,23 @@ export const lunaIntroductionDialogue: IDialogue = {
 
           nextNodeId: "leave-result",
 
-          effects: {
-            relationshipChange: -1,
-          },
+          effects: [
+            {
+              type: "change-relationship",
+
+              npcId: "luna",
+
+              amount: -1,
+            },
+
+            {
+              type: "set-fact",
+
+              key: "luna.left-alone",
+
+              value: true,
+            },
+          ],
         },
       ],
     },
@@ -84,8 +108,6 @@ export const lunaIntroductionDialogue: IDialogue = {
       textKey: "dialogues.lunaIntroduction.comfortResult",
 
       emotion: "neutral",
-
-      nextNodeId: null,
     },
 
     "leave-result": {
@@ -98,8 +120,6 @@ export const lunaIntroductionDialogue: IDialogue = {
       textKey: "dialogues.lunaIntroduction.leaveResult",
 
       emotion: "sad",
-
-      nextNodeId: null,
     },
   },
 };

@@ -2,16 +2,44 @@ import type { INpc } from "./npc";
 import type { INpcDialogueCondition, INpcDialogueRule } from "./npc-dialogue";
 import type { INpcRuntimeState } from "./npc-state";
 
+import { GameConditionEvaluator } from "../conditions/game-condition-evaluator";
+import type { IGameConditionContext } from "../conditions/game-condition-context";
+
 export class NpcDialogueResolver {
-  resolve(npc: INpc, state: INpcRuntimeState) {
+  private readonly conditionEvaluator = new GameConditionEvaluator();
+
+  resolve(
+    npc: INpc,
+    state: INpcRuntimeState,
+    gameConditionContext?: IGameConditionContext,
+  ) {
     const rule = npc.dialogueRules?.find((currentRule) =>
-      this.matchesRule(currentRule, state),
+      this.matchesRule(currentRule, state, gameConditionContext),
     );
 
     return rule?.dialogueId ?? npc.initialDialogueId;
   }
 
-  private matchesRule(rule: INpcDialogueRule, state: INpcRuntimeState) {
+  private matchesRule(
+    rule: INpcDialogueRule,
+    state: INpcRuntimeState,
+    gameConditionContext?: IGameConditionContext,
+  ) {
+    if (rule.gameConditions) {
+      if (!gameConditionContext) {
+        return false;
+      }
+
+      const matchesGameConditions = this.conditionEvaluator.check(
+        rule.gameConditions,
+        gameConditionContext,
+      );
+
+      if (!matchesGameConditions) {
+        return false;
+      }
+    }
+
     if (!rule.conditions || rule.conditions.length === 0) {
       return true;
     }

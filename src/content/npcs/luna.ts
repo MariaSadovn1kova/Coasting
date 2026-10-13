@@ -22,6 +22,28 @@ export const luna: INpc = {
 
   dialogueRules: [
     {
+      dialogueId: "luna-pendant",
+
+      gameConditions: {
+        all: [
+          {
+            type: "fact",
+            key: "luna.pendant-found",
+            equals: true,
+          },
+        ],
+
+        none: [
+          {
+            type: "fact",
+            key: "luna.pendant-discussed",
+            equals: true,
+          },
+        ],
+      },
+    },
+
+    {
       dialogueId: "luna-after-comfort",
 
       conditions: [

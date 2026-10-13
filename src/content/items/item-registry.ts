@@ -1,11 +1,12 @@
 import type { IItem } from "../../game/inventory/item";
 
 import { oldKey } from "./old-key";
+import { lunaBrokenPendantItem } from "./luna-broken-pendant";
 
-const items: IItem[] = [oldKey];
+const items: IItem[] = [oldKey, lunaBrokenPendantItem];
 
-const itemRegistry = new Map(items.map((item) => [item.id, item]));
+const itemMap = new Map(items.map((item) => [item.id, item]));
 
-export function getItemById(itemId: string): IItem | null {
-  return itemRegistry.get(itemId) ?? null;
+export function getItemById(itemId: string): IItem | undefined {
+  return itemMap.get(itemId);
 }

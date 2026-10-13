@@ -52,6 +52,41 @@ import { useInteractionHintStore } from "../store/use-interaction-hint-store";
 
 import { worldToIso } from "../world/iso";
 
+import { GameEffectApplier } from "../effects/game-effect-applier";
+import { createGameEffectContext } from "../effects/create-game-effect-context";
+
+import { GameConditionEvaluator } from "../conditions/game-condition-evaluator";
+import { createGameConditionContext } from "../conditions/create-game-condition-context";
+
+type TInventoryItems = ReturnType<InventoryController["getItems"]>;
+
+interface IGameEngineMountOptions {
+  spawn?: {
+    x: number;
+    y: number;
+  };
+
+  inventory?: TInventoryItems;
+
+  onTransition?: (
+    locationId: string,
+    position: {
+      x: number;
+      y: number;
+    },
+    inventory: TInventoryItems,
+  ) => void;
+
+  onLoadGame?: (
+    locationId: string,
+    position: {
+      x: number;
+      y: number;
+    },
+    inventory: TInventoryItems,
+  ) => void;
+}
+
 export class GameEngine {
   private player: PlayerController | null = null;
 
@@ -73,6 +108,10 @@ export class GameEngine {
 
   private objectControllers = new Map<string, WorldObjectController>();
 
+  private objectViews = new Map<string, Container>();
+
+  private onLoadGame: IGameEngineMountOptions["onLoadGame"] | null = null;
+
   private removeInteractionHandler: (() => void) | null = null;
 
   private removeInventoryHandler: (() => void) | null = null;
@@ -85,7 +124,11 @@ export class GameEngine {
 
   private removeQuickSaveHandler: (() => void) | null = null;
 
-  async mount(element: HTMLElement, location: ILocation) {
+  async mount(
+    element: HTMLElement,
+    location: ILocation,
+    options: IGameEngineMountOptions = {},
+  ) {
     const app = new Application();
 
     await app.init({
@@ -108,10 +151,34 @@ export class GameEngine {
 
     const worldState = useWorldStateStore.getState();
 
-    location.objects.forEach((object) => {
-      const view = createWorldObjectView(object);
+    const inventory = new InventoryController();
 
+    if (options.inventory) {
+      inventory.setItems(options.inventory);
+    }
+
+    const conditionEvaluator = new GameConditionEvaluator();
+
+    const conditionContext = createGameConditionContext(inventory);
+
+    const visibleObjects = location.objects.filter((object) => {
+      const conditions = location.objectVisibility?.[object.id];
+
+      return conditionEvaluator.check(conditions, conditionContext);
+    });
+
+    visibleObjects.forEach((object) => {
       const runtimeState = worldState.getObjectState(location.id, object.id);
+
+      if (
+        object.type === "interactive" &&
+        object.interactionAction === "pickup" &&
+        runtimeState?.isCollected
+      ) {
+        return;
+      }
+
+      const view = createWorldObjectView(object);
 
       const controller = new WorldObjectController({
         object,
@@ -121,22 +188,26 @@ export class GameEngine {
 
       this.objectControllers.set(object.id, controller);
 
+      this.objectViews.set(object.id, view.container);
+
       entities.addChild(view.container);
     });
 
+    const spawn = options.spawn ?? location.spawn;
+
     const playerView = createPlayer({
-      x: location.spawn.x,
-      y: location.spawn.y,
+      x: spawn.x,
+      y: spawn.y,
     });
 
-    playerView.zIndex = getIsoDepth(location.spawn.x, location.spawn.y);
+    playerView.zIndex = getIsoDepth(spawn.x, spawn.y);
 
     const player = new PlayerController({
       view: playerView,
 
       position: {
-        x: location.spawn.x,
-        y: location.spawn.y,
+        x: spawn.x,
+        y: spawn.y,
       },
     });
 
@@ -149,8 +220,6 @@ export class GameEngine {
     const interactionSystem = new InteractionSystem(location);
 
     const audioManager = new AudioManager();
-
-    const inventory = new InventoryController();
 
     const removeInteractionHandler = keyboard.onKeyDown((key) => {
       if (key !== "KeyE") {
@@ -194,7 +263,6 @@ export class GameEngine {
 
           gameEventBus.emit("container-opened", {
             containerId: object.id,
-
             items: controller.getContents(),
           });
 
@@ -224,7 +292,11 @@ export class GameEngine {
 
           const dialogueResolver = new NpcDialogueResolver();
 
-          const dialogueId = dialogueResolver.resolve(npc, npcState);
+          const dialogueId = dialogueResolver.resolve(
+            npc,
+            npcState,
+            createGameConditionContext(inventory),
+          );
 
           const dialogue = getDialogueById(dialogueId);
 
@@ -236,6 +308,8 @@ export class GameEngine {
 
           const dialogueController = new DialogueController({
             dialogue,
+
+            effectContext: createGameEffectContext(inventory),
           });
 
           useDialogueStore
@@ -247,8 +321,49 @@ export class GameEngine {
           break;
         }
 
-        case "transition":
+        case "transition": {
+          options.onTransition?.(
+            object.targetLocationId,
+            object.targetPosition,
+            inventory.getItems(),
+          );
+
           break;
+        }
+
+        case "pickup": {
+          inventory.addItems([
+            {
+              item: object.item,
+              quantity: object.quantity ?? 1,
+            },
+          ]);
+
+          const effectApplier = new GameEffectApplier();
+
+          effectApplier.apply(
+            object.effects,
+            createGameEffectContext(inventory),
+          );
+
+          worldState.patchObjectState(location.id, object.id, {
+            isCollected: true,
+          });
+
+          const objectView = this.objectViews.get(object.id);
+
+          if (objectView) {
+            objectView.removeFromParent();
+          }
+
+          this.objectViews.delete(object.id);
+
+          this.objectControllers.delete(object.id);
+
+          gameEventBus.emit("inventory-updated", inventory.getItems());
+
+          break;
+        }
 
         case "inspect":
           break;
@@ -442,6 +557,8 @@ export class GameEngine {
 
     app.stage.addChild(this.worldContainer);
 
+    this.onLoadGame = options.onLoadGame ?? null;
+
     this.app = app;
 
     this.player = player;
@@ -474,24 +591,38 @@ export class GameEngine {
         player.getDirection(),
       );
 
+      const activeInteractiveObject =
+        interactiveObject && this.objectControllers.has(interactiveObject.id)
+          ? interactiveObject
+          : null;
+
       const interactionHintStore = useInteractionHintStore.getState();
 
-      if (interactiveObject && !gamePauseController.isPaused()) {
-        switch (interactiveObject.interactionAction) {
+      if (activeInteractiveObject && !gamePauseController.isPaused()) {
+        switch (activeInteractiveObject.interactionAction) {
           case "talk":
             interactionHintStore.show("talk");
+
             break;
 
           case "open-container":
             interactionHintStore.show("open");
+
             break;
 
           case "transition":
             interactionHintStore.show("enter");
+
             break;
 
           case "inspect":
             interactionHintStore.show("inspect");
+
+            break;
+
+          case "pickup":
+            interactionHintStore.show("pickup");
+
             break;
         }
       } else {
@@ -504,10 +635,7 @@ export class GameEngine {
 
       if (interactionCameraTarget && hasCameraInteraction) {
         if (!interactionCameraPosition) {
-          interactionCameraPosition = {
-            x: playerView.x,
-            y: playerView.y,
-          };
+          interactionCameraPosition = camera.getFocusPoint();
         }
 
         const deltaSeconds = ticker.deltaMS / 1000;
@@ -579,39 +707,13 @@ export class GameEngine {
   }
 
   async loadGame(slot: TSaveSlot): Promise<boolean> {
-    if (!this.player || !this.inventory || !this.locationId) {
-      return false;
-    }
-
     const loadedGame = await this.saveManager.loadGame(slot);
 
-    if (loadedGame.locationId !== this.locationId) {
-      console.warn(
-        `Cannot load location "${loadedGame.locationId}" while "${this.locationId}" is active`,
-      );
-
-      return false;
-    }
-
-    this.player.setPosition(
-      loadedGame.playerPosition.x,
-      loadedGame.playerPosition.y,
+    this.onLoadGame?.(
+      loadedGame.locationId,
+      loadedGame.playerPosition,
+      loadedGame.inventory,
     );
-
-    this.inventory.setItems(loadedGame.inventory);
-
-    const worldState = useWorldStateStore.getState();
-
-    this.objectControllers.forEach((controller, objectId) => {
-      const runtimeState = worldState.getObjectState(
-        this.locationId!,
-        objectId,
-      );
-
-      controller.applyRuntimeState(runtimeState);
-    });
-
-    gameEventBus.emit("inventory-updated", this.inventory.getItems());
 
     gameEventBus.emit("container-close");
 
@@ -735,6 +837,8 @@ export class GameEngine {
     this.audioManager = null;
 
     this.objectControllers.clear();
+
+    this.objectViews.clear();
 
     this.removeInteractionHandler = null;
 
