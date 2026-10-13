@@ -44,6 +44,16 @@ export const luna: INpc = {
     },
 
     {
+      dialogueId: "luna-after-introduction",
+
+      conditions: [
+        {
+          completedDialogueId: "luna-introduction",
+        },
+      ],
+    },
+
+    {
       dialogueId: "luna-after-comfort",
 
       conditions: [

@@ -43,13 +43,15 @@ export const hallway: ILocation = {
 
   objectVisibility: {
     [lunaBrokenPendant.id]: {
-      type: "npc-flag",
+      all: [
+        {
+          type: "fact",
 
-      npcId: "luna",
+          key: "luna.left-alone",
 
-      flagId: "luna-left-alone",
-
-      value: true,
+          equals: true,
+        },
+      ],
     },
   },
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
@@ -14,10 +14,22 @@ import { useTypewriterText } from "./use-typewriter-text";
 
 import "./dialogue-panel.css";
 
+const PORTRAIT_ANIMATION_DURATION = 260;
+
 export function DialoguePanel() {
   const { t } = useTranslation();
 
   const [dialogueVoice] = useState(() => new DialogueVoice());
+
+  const [displayedPortrait, setDisplayedPortrait] = useState<string | null>(
+    null,
+  );
+
+  const [previousPortrait, setPreviousPortrait] = useState<string | null>(null);
+
+  const currentPortraitRef = useRef<string | null>(null);
+
+  const portraitTimeoutRef = useRef<number | null>(null);
 
   const isOpen = useDialogueStore((state) => state.isOpen);
 
@@ -33,15 +45,42 @@ export function DialoguePanel() {
 
   const npc = npcId ? getNpcById(npcId) : null;
 
+  const isPlayerLine =
+    currentNode?.type === "line" && currentNode.speakerId === "player";
+
+  const speakerNpc =
+    currentNode?.type === "line" && currentNode.speakerId !== "player"
+      ? getNpcById(currentNode.speakerId)
+      : null;
+
   const lineText = currentNode?.type === "line" ? t(currentNode.textKey) : "";
 
+  const availableOptions =
+    currentNode?.type === "choice" && controller
+      ? controller.getAvailableOptions()
+      : [];
+
+  const portrait =
+    currentNode?.type === "line"
+      ? isPlayerLine
+        ? null
+        : speakerNpc
+          ? (speakerNpc.portraits[currentNode.emotion] ??
+            speakerNpc.portraits.neutral)
+          : null
+      : currentNode?.type === "choice" && npc
+        ? npc.portraits.neutral
+        : null;
+
   useEffect(() => {
-    if (!npc) {
+    if (!speakerNpc) {
+      dialogueVoice.stop();
+
       return;
     }
 
-    dialogueVoice.setVoice(npc.speechSound);
-  }, [npc, dialogueVoice]);
+    dialogueVoice.setVoice(speakerNpc.speechSound);
+  }, [speakerNpc, dialogueVoice]);
 
   useEffect(() => {
     return () => {
@@ -49,9 +88,48 @@ export function DialoguePanel() {
     };
   }, [dialogueVoice]);
 
+  useEffect(() => {
+    if (portrait === currentPortraitRef.current) {
+      return;
+    }
+
+    if (portraitTimeoutRef.current !== null) {
+      window.clearTimeout(portraitTimeoutRef.current);
+
+      portraitTimeoutRef.current = null;
+    }
+
+    const previous = currentPortraitRef.current;
+
+    setPreviousPortrait(previous);
+    setDisplayedPortrait(portrait);
+
+    currentPortraitRef.current = portrait;
+
+    if (!previous) {
+      setPreviousPortrait(null);
+
+      return;
+    }
+
+    portraitTimeoutRef.current = window.setTimeout(() => {
+      setPreviousPortrait(null);
+
+      portraitTimeoutRef.current = null;
+    }, PORTRAIT_ANIMATION_DURATION);
+  }, [portrait]);
+
+  useEffect(() => {
+    return () => {
+      if (portraitTimeoutRef.current !== null) {
+        window.clearTimeout(portraitTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleCharacter = useCallback(
     (character: string, index: number) => {
-      if (!npc) {
+      if (!speakerNpc) {
         return;
       }
 
@@ -67,7 +145,7 @@ export function DialoguePanel() {
 
       dialogueVoice.play();
     },
-    [npc, dialogueVoice],
+    [speakerNpc, dialogueVoice],
   );
 
   const { visibleText, isComplete, complete } = useTypewriterText({
@@ -133,11 +211,7 @@ export function DialoguePanel() {
 
   const handleSelectOption = useCallback(
     (index: number) => {
-      if (!currentNode || currentNode.type !== "choice") {
-        return;
-      }
-
-      const option = currentNode.options[index];
+      const option = availableOptions[index];
 
       if (!option) {
         return;
@@ -145,13 +219,12 @@ export function DialoguePanel() {
 
       handleChoice(option);
     },
-    [currentNode, handleChoice],
+    [availableOptions, handleChoice],
   );
 
   const isChoice = currentNode?.type === "choice";
 
-  const optionsCount =
-    currentNode?.type === "choice" ? currentNode.options.length : 0;
+  const optionsCount = availableOptions.length;
 
   const { selectedOptionIndex } = useDialogueKeyboard({
     isEnabled: isOpen,
@@ -165,24 +238,41 @@ export function DialoguePanel() {
     return null;
   }
 
-  const portrait =
+  const speakerName =
     currentNode.type === "line"
-      ? (npc.portraits[currentNode.emotion] ?? npc.portraits.neutral)
-      : npc.portraits.neutral;
+      ? isPlayerLine
+        ? t("common.you")
+        : speakerNpc
+          ? t(speakerNpc.nameKey)
+          : ""
+      : t(npc.nameKey);
 
   return (
     <div className="dialogue-overlay">
       <section className="dialogue-panel">
-        <div className="dialogue-panel__portrait">
-          <img
-            src={portrait}
-            alt={t(npc.nameKey)}
-            className="dialogue-panel__portrait-image"
-          />
-        </div>
+        {(displayedPortrait || previousPortrait) && (
+          <div className="dialogue-panel__portrait">
+            {previousPortrait && (
+              <img
+                src={previousPortrait}
+                alt=""
+                className="dialogue-panel__portrait-image dialogue-panel__portrait-image--exit"
+              />
+            )}
+
+            {displayedPortrait && (
+              <img
+                key={displayedPortrait}
+                src={displayedPortrait}
+                alt={speakerName}
+                className="dialogue-panel__portrait-image dialogue-panel__portrait-image--enter"
+              />
+            )}
+          </div>
+        )}
 
         <div className="dialogue-panel__content">
-          <strong className="dialogue-panel__name">{t(npc.nameKey)}</strong>
+          <strong className="dialogue-panel__name">{speakerName}</strong>
 
           {currentNode.type === "line" ? (
             <>
@@ -198,13 +288,12 @@ export function DialoguePanel() {
             </>
           ) : (
             <div className="dialogue-panel__choices">
-              {currentNode.options.map((option, index) => (
+              {availableOptions.map((option, index) => (
                 <button
                   key={option.id}
                   type="button"
                   className={[
                     "dialogue-panel__choice",
-
                     index === selectedOptionIndex
                       ? "dialogue-panel__choice--selected"
                       : "",

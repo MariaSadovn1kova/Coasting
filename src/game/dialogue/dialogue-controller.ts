@@ -4,6 +4,9 @@ import type {
   TDialogueNode,
 } from "./dialogue";
 
+import { GameConditionEvaluator } from "../conditions/game-condition-evaluator";
+import type { IGameConditionContext } from "../conditions/game-condition-context";
+
 import { GameEffectApplier } from "../effects/game-effect-applier";
 import type { IGameEffectContext } from "../effects/game-effect-context";
 
@@ -11,7 +14,10 @@ import { useNpcStateStore } from "../store/use-npc-state-store";
 
 interface IDialogueControllerOptions {
   dialogue: IDialogue;
+
   effectContext: IGameEffectContext;
+
+  conditionContext: IGameConditionContext;
 }
 
 export class DialogueController {
@@ -19,16 +25,28 @@ export class DialogueController {
 
   private readonly effectContext: IGameEffectContext;
 
+  private readonly conditionContext: IGameConditionContext;
+
   private readonly effectApplier = new GameEffectApplier();
 
-  private currentNodeId: string;
+  private readonly conditionEvaluator = new GameConditionEvaluator();
 
-  constructor({ dialogue, effectContext }: IDialogueControllerOptions) {
+  private currentNodeId: string | null = null;
+
+  private isCompleted = false;
+
+  constructor({
+    dialogue,
+    effectContext,
+    conditionContext,
+  }: IDialogueControllerOptions) {
     this.dialogue = dialogue;
 
     this.effectContext = effectContext;
 
-    this.currentNodeId = dialogue.startNodeId;
+    this.conditionContext = conditionContext;
+
+    this.enterNode(dialogue.startNodeId);
   }
 
   getDialogue() {
@@ -36,19 +54,27 @@ export class DialogueController {
   }
 
   getCurrentNode(): TDialogueNode | null {
+    if (!this.currentNodeId) {
+      return null;
+    }
+
     return this.dialogue.nodes[this.currentNodeId] ?? null;
   }
 
-  goToNode(nodeId: string): boolean {
-    const node = this.dialogue.nodes[nodeId];
+  getAvailableOptions(): IDialogueChoiceOption[] {
+    const node = this.getCurrentNode();
 
-    if (!node) {
-      return false;
+    if (!node || node.type !== "choice") {
+      return [];
     }
 
-    this.currentNodeId = nodeId;
+    return node.options.filter((option) =>
+      this.conditionEvaluator.check(option.conditions, this.conditionContext),
+    );
+  }
 
-    return true;
+  goToNode(nodeId: string): boolean {
+    return this.enterNode(nodeId);
   }
 
   advance(): boolean {
@@ -64,7 +90,15 @@ export class DialogueController {
       return false;
     }
 
-    return this.goToNode(node.nextNodeId);
+    const moved = this.goToNode(node.nextNodeId);
+
+    if (!moved) {
+      this.completeDialogue();
+
+      return false;
+    }
+
+    return true;
   }
 
   choose(option: IDialogueChoiceOption): boolean {
@@ -82,6 +116,15 @@ export class DialogueController {
       return false;
     }
 
+    const isAvailable = this.conditionEvaluator.check(
+      selectedOption.conditions,
+      this.conditionContext,
+    );
+
+    if (!isAvailable) {
+      return false;
+    }
+
     useNpcStateStore
       .getState()
       .setChoice(this.dialogue.npcId, node.choiceId, selectedOption.id);
@@ -94,10 +137,72 @@ export class DialogueController {
       return false;
     }
 
-    return this.goToNode(selectedOption.nextNodeId);
+    const moved = this.goToNode(selectedOption.nextNodeId);
+
+    if (!moved) {
+      this.completeDialogue();
+
+      return false;
+    }
+
+    return true;
+  }
+
+  private enterNode(nodeId: string): boolean {
+    let nextNodeId: string | undefined = nodeId;
+
+    const visited = new Set<string>();
+
+    while (nextNodeId !== undefined) {
+      const currentNodeId: string = nextNodeId;
+
+      if (visited.has(currentNodeId)) {
+        console.warn(`Dialogue loop while resolving node: ${currentNodeId}`);
+
+        return false;
+      }
+
+      visited.add(currentNodeId);
+
+      const node: TDialogueNode | undefined =
+        this.dialogue.nodes[currentNodeId];
+
+      if (!node) {
+        console.warn(`Dialogue node not found: ${currentNodeId}`);
+
+        return false;
+      }
+
+      const isAvailable = this.conditionEvaluator.check(
+        node.conditions,
+        this.conditionContext,
+      );
+
+      if (!isAvailable) {
+        nextNodeId = node.nextNodeId;
+
+        continue;
+      }
+
+      this.currentNodeId = node.id;
+
+      this.effectApplier.apply(node.effects, this.effectContext);
+
+      return true;
+    }
+
+    this.currentNodeId = null;
+
+    return false;
   }
 
   private completeDialogue() {
+    if (this.isCompleted) {
+      return;
+    }
+
+    this.isCompleted = true;
+
     this.effectApplier.apply(
       this.dialogue.completionEffects,
       this.effectContext,

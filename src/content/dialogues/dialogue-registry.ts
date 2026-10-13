@@ -7,7 +7,7 @@ import {
 import { lunaIntroductionDialogue } from "./luna-introduction";
 
 import { lunaRepeatDialogue } from "./luna-repeat";
-
+import { lunaAfterIntroductionDialogue } from "./luna-after-introduction";
 import { lunaPendantDialogue } from "./luna-pendant";
 
 const dialogues: IDialogue[] = [
@@ -16,6 +16,7 @@ const dialogues: IDialogue[] = [
   lunaAfterLeaveDialogue,
   lunaRepeatDialogue,
   lunaPendantDialogue,
+  lunaAfterIntroductionDialogue,
 ];
 
 const dialogueMap = new Map(

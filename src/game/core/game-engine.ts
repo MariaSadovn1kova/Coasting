@@ -290,12 +290,14 @@ export class GameEngine {
             return;
           }
 
+          const conditionContext = createGameConditionContext(inventory);
+
           const dialogueResolver = new NpcDialogueResolver();
 
           const dialogueId = dialogueResolver.resolve(
             npc,
             npcState,
-            createGameConditionContext(inventory),
+            conditionContext,
           );
 
           const dialogue = getDialogueById(dialogueId);
@@ -310,6 +312,8 @@ export class GameEngine {
             dialogue,
 
             effectContext: createGameEffectContext(inventory),
+
+            conditionContext,
           });
 
           useDialogueStore

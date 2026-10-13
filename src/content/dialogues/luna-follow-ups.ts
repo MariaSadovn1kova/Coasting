@@ -18,8 +18,6 @@ export const lunaAfterComfortDialogue: IDialogue = {
       textKey: "dialogues.lunaAfterComfort.start",
 
       emotion: "neutral",
-
-      nextNodeId: null,
     },
   },
 };
@@ -42,8 +40,6 @@ export const lunaAfterLeaveDialogue: IDialogue = {
       textKey: "dialogues.lunaAfterLeave.start",
 
       emotion: "sad",
-
-      nextNodeId: null,
     },
   },
 };

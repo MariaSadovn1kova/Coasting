@@ -25,6 +25,7 @@ export const en = {
   common: {
     back: "Back",
     continue: "Continue",
+    you: "You",
   },
 
   mainMenu: {
@@ -134,5 +135,28 @@ export const en = {
       lunaSurprised: "Wait... Where did you find this?",
       lunaThanks: "I thought I'd lost it forever. Thank you.",
     },
+
+    choices: {
+      comfort: "Don't worry. I'm here.",
+      leaveAlone: "You probably need some time alone.",
+      close: "You can tell me everything, if you want.",
+    },
+
+    lunaAfterIntroduction: {
+      start: "You're here again.",
+      choices: {
+        askHow: "How are you feeling?",
+        talk: "If you want to talk, I can listen.",
+        leave: "I won't bother you.",
+      },
+      askHowResult: "Better. I think.",
+      talkResult:
+        "Thank you. It's still hard for me to talk about it... but I'll try.",
+      leaveResult: "Alright. See you later.",
+    },
+
+    openedUpStart: "Hi. I'm glad you came back.",
+
+    closeResult: "Thank you... I actually feel a little better now.",
   },
 } as const;

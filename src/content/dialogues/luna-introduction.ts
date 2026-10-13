@@ -54,17 +54,13 @@ export const lunaIntroductionDialogue: IDialogue = {
           effects: [
             {
               type: "change-relationship",
-
               npcId: "luna",
-
               amount: 2,
             },
 
             {
               type: "set-fact",
-
               key: "luna.comforted",
-
               value: true,
             },
           ],
@@ -75,23 +71,45 @@ export const lunaIntroductionDialogue: IDialogue = {
 
           textKey: "dialogues.lunaIntroduction.choices.leaveAlone",
 
-          nextNodeId: "leave-result",
+          nextNodeId: "comfort-result",
 
           effects: [
             {
               type: "change-relationship",
-
               npcId: "luna",
-
               amount: -1,
             },
 
             {
               type: "set-fact",
-
               key: "luna.left-alone",
-
               value: true,
+            },
+          ],
+        },
+
+        {
+          id: "close",
+
+          textKey: "dialogues.lunaIntroduction.choices.close",
+
+          conditions: {
+            all: [
+              {
+                type: "relationship",
+                npcId: "luna",
+                min: 2,
+              },
+            ],
+          },
+
+          nextNodeId: "close-result",
+
+          effects: [
+            {
+              type: "change-relationship",
+              npcId: "luna",
+              amount: 1,
             },
           ],
         },
@@ -108,6 +126,20 @@ export const lunaIntroductionDialogue: IDialogue = {
       textKey: "dialogues.lunaIntroduction.comfortResult",
 
       emotion: "neutral",
+
+      conditions: {
+        all: [
+          {
+            type: "fact",
+
+            key: "luna.comforted",
+
+            equals: true,
+          },
+        ],
+      },
+
+      nextNodeId: "leave-result",
     },
 
     "leave-result": {
@@ -120,6 +152,18 @@ export const lunaIntroductionDialogue: IDialogue = {
       textKey: "dialogues.lunaIntroduction.leaveResult",
 
       emotion: "sad",
+
+      conditions: {
+        all: [
+          {
+            type: "fact",
+
+            key: "luna.left-alone",
+
+            equals: true,
+          },
+        ],
+      },
     },
   },
 };

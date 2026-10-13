@@ -1,5 +1,7 @@
 import type { TGameEffect } from "../effects/game-effect";
 
+import type { IGameConditionGroup } from "../conditions/game-condition";
+
 export type TDialogueEmotion = "neutral" | "happy" | "sad" | "angry";
 
 export interface IDialogueLineNode {
@@ -14,6 +16,10 @@ export interface IDialogueLineNode {
   emotion: TDialogueEmotion;
 
   nextNodeId?: string;
+
+  conditions?: IGameConditionGroup;
+
+  effects?: TGameEffect[];
 }
 
 export interface IDialogueChoiceOption {
@@ -24,6 +30,8 @@ export interface IDialogueChoiceOption {
   nextNodeId?: string;
 
   effects?: TGameEffect[];
+
+  conditions?: IGameConditionGroup;
 }
 
 export interface IDialogueChoiceNode {
@@ -34,6 +42,12 @@ export interface IDialogueChoiceNode {
   choiceId: string;
 
   options: IDialogueChoiceOption[];
+
+  nextNodeId?: string;
+
+  conditions?: IGameConditionGroup;
+
+  effects?: TGameEffect[];
 }
 
 export type TDialogueNode = IDialogueLineNode | IDialogueChoiceNode;
