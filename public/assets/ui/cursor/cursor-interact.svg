@@ -1,0 +1,22 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="28"
+  height="28"
+  viewBox="0 0 28 28"
+>
+  <circle
+    cx="14"
+    cy="14"
+    r="8"
+    fill="rgba(255,255,255,0.16)"
+    stroke="#ffffff"
+    stroke-width="2"
+  />
+
+  <circle
+    cx="14"
+    cy="14"
+    r="2.5"
+    fill="#ffffff"
+  />
+</svg>
