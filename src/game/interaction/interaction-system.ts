@@ -12,6 +12,8 @@ interface IDirectionVector {
 const INTERACTION_RANGE = 1.6;
 const INTERACTION_WIDTH = 0.75;
 
+const CLOSE_INTERACTION_RANGE = 0.5;
+
 export class InteractionSystem {
   constructor(private readonly location: ILocation) {}
 
@@ -35,6 +37,18 @@ export class InteractionSystem {
 
       const relativeY = object.position.y - playerPosition.y;
 
+      const distance = Math.hypot(relativeX, relativeY);
+
+      if (distance <= CLOSE_INTERACTION_RANGE) {
+        if (distance < closestDistance) {
+          closestDistance = distance;
+
+          closestObject = object;
+        }
+
+        return;
+      }
+
       const forwardDistance =
         (relativeX * directionVector.x + relativeY * directionVector.y) / 2;
 
@@ -49,8 +63,6 @@ export class InteractionSystem {
       if (lateralDistance > INTERACTION_WIDTH) {
         return;
       }
-
-      const distance = Math.hypot(relativeX, relativeY);
 
       if (distance < closestDistance) {
         closestDistance = distance;

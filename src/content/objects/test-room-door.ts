@@ -14,7 +14,7 @@ export const testRoomDoor: ITransitionWorldObject = {
 
   wallSide: "right",
 
-  blocksMovement: true,
+  blocksMovement: false,
 
   targetLocationId: "hallway",
 
