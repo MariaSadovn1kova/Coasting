@@ -9,6 +9,9 @@ import { createRoomWalls } from "../../game/world/create-room-walls";
 const ROOM_WIDTH = 15;
 const ROOM_HEIGHT = 15;
 
+const FLOOR_TEXTURE = "/assets/textures/floors/marble.jpg";
+const ORNAMENT_TEXTURE = "/assets/textures/floors/ornament.jpg";
+
 export const testRoom: ILocation = {
   id: "test-room",
 
@@ -46,38 +49,18 @@ export const testRoom: ILocation = {
   objects: [testChest, lunaWorldObject, testRoomDoor],
 
   floor: {
-    /*
-     * БАЗОВЫЙ ПОЛ
-     *
-     * Один JPG непрерывно покрывает
-     * всю комнату.
-     */
     base: {
-      src: "/assets/textures/floors/marble.jpg",
+      src: FLOOR_TEXTURE,
 
       mode: "continuous",
 
-      /*
-       * JPG повторится несколько раз
-       * по всей комнате.
-       */
-      repeatX: 5,
-      repeatY: 5,
+      repeatX: 4,
+      repeatY: 4,
 
-      /*
-       * Можно менять визуальный
-       * размер рисунка.
-       */
       scale: 1,
 
-      /*
-       * Поворот в градусах.
-       */
       rotation: 0,
 
-      /*
-       * UV-сдвиг.
-       */
       offsetX: 0,
       offsetY: 0,
 
@@ -85,44 +68,37 @@ export const testRoom: ILocation = {
     },
 
     layers: [
-      /*
-       * БОЛЬШОЙ УЗОР
-       *
-       * Один JPG натягивается
-       * непрерывно только на
-       * выбранную область.
-       */
       {
-        id: "carpet",
+        id: "normal-overlay",
 
         regions: [
           {
             from: {
-              x: 2,
-              y: 2,
+              x: 1,
+              y: 1,
             },
 
             to: {
-              x: 7,
-              y: 6,
+              x: 4,
+              y: 4,
             },
 
             texture: {
-              src: "/assets/textures/floors/marble.jpg",
+              src: FLOOR_TEXTURE,
 
               mode: "continuous",
 
-              scale: 1,
+              repeatX: 1,
+              repeatY: 1,
+
+              scale: 1.4,
 
               rotation: 0,
 
               offsetX: 0,
               offsetY: 0,
 
-              repeatX: 1,
-              repeatY: 1,
-
-              alpha: 1,
+              alpha: 0.65,
 
               blendMode: "normal",
             },
@@ -130,23 +106,128 @@ export const testRoom: ILocation = {
         ],
       },
 
-      /*
-       * ГРЯЗЬ
-       *
-       * Ещё один continuous JPG
-       * поверх части пола.
-       *
-       * Multiply хорошо подходит
-       * для тёмных загрязнений.
-       */
       {
-        id: "dirt",
+        id: "multiply-overlay",
 
         regions: [
           {
             from: {
-              x: 4,
+              x: 5,
+              y: 1,
+            },
+
+            to: {
+              x: 8,
               y: 4,
+            },
+
+            texture: {
+              src: ORNAMENT_TEXTURE,
+
+              mode: "continuous",
+
+              repeatX: 1,
+              repeatY: 1,
+
+              scale: 1.4,
+
+              rotation: 0,
+
+              offsetX: 0,
+              offsetY: 0,
+
+              alpha: 0.65,
+
+              blendMode: "multiply",
+            },
+          },
+        ],
+      },
+
+      {
+        id: "screen-light",
+
+        regions: [
+          {
+            from: {
+              x: 9,
+              y: 1,
+            },
+
+            to: {
+              x: 12,
+              y: 4,
+            },
+
+            texture: {
+              src: FLOOR_TEXTURE,
+
+              mode: "continuous",
+
+              repeatX: 1,
+              repeatY: 1,
+
+              scale: 1.4,
+
+              rotation: 0,
+
+              offsetX: 0,
+              offsetY: 0,
+
+              alpha: 0.45,
+
+              blendMode: "screen",
+            },
+          },
+        ],
+      },
+
+      {
+        id: "add-light",
+
+        regions: [
+          {
+            from: {
+              x: 1,
+              y: 5,
+            },
+
+            to: {
+              x: 4,
+              y: 8,
+            },
+
+            texture: {
+              src: FLOOR_TEXTURE,
+
+              mode: "continuous",
+
+              repeatX: 1,
+              repeatY: 1,
+
+              scale: 1.4,
+
+              rotation: 0,
+
+              offsetX: 0,
+              offsetY: 0,
+
+              alpha: 0.18,
+
+              blendMode: "add",
+            },
+          },
+        ],
+      },
+
+      {
+        id: "rotated-pattern",
+
+        regions: [
+          {
+            from: {
+              x: 5,
+              y: 5,
             },
 
             to: {
@@ -155,21 +236,97 @@ export const testRoom: ILocation = {
             },
 
             texture: {
-              src: "/assets/textures/floors/marble.jpg",
+              src: FLOOR_TEXTURE,
 
               mode: "continuous",
 
               repeatX: 2,
               repeatY: 2,
 
-              scale: 1.2,
+              scale: 0.8,
 
-              rotation: 15,
+              rotation: 45,
+
+              offsetX: 0,
+              offsetY: 0,
+
+              alpha: 0.8,
+
+              blendMode: "normal",
+            },
+          },
+        ],
+      },
+
+      {
+        id: "offset-pattern",
+
+        regions: [
+          {
+            from: {
+              x: 9,
+              y: 5,
+            },
+
+            to: {
+              x: 12,
+              y: 8,
+            },
+
+            texture: {
+              src: FLOOR_TEXTURE,
+
+              mode: "continuous",
+
+              repeatX: 2,
+              repeatY: 2,
+
+              scale: 1,
+
+              rotation: -20,
+
+              offsetX: 0.2,
+              offsetY: -0.15,
+
+              alpha: 0.8,
+
+              blendMode: "normal",
+            },
+          },
+        ],
+      },
+
+      {
+        id: "multiply-dark-light",
+
+        regions: [
+          {
+            from: {
+              x: 1,
+              y: 9,
+            },
+
+            to: {
+              x: 4,
+              y: 12,
+            },
+
+            texture: {
+              src: FLOOR_TEXTURE,
+
+              mode: "continuous",
+
+              repeatX: 1,
+              repeatY: 1,
+
+              scale: 2,
+
+              rotation: 25,
 
               offsetX: 0.1,
-              offsetY: -0.05,
+              offsetY: 0,
 
-              alpha: 0.55,
+              alpha: 0.8,
 
               blendMode: "multiply",
             },
@@ -177,48 +334,94 @@ export const testRoom: ILocation = {
         ],
       },
 
-      /*
-       * ОСВЕЩЕНИЕ
-       *
-       * Этот слой занимает
-       * всю комнату.
-       */
       {
-        id: "light",
+        id: "screen-strong-light",
 
-        texture: {
-          src: "/assets/textures/floors/marble.jpg",
+        regions: [
+          {
+            from: {
+              x: 5,
+              y: 9,
+            },
 
-          mode: "continuous",
+            to: {
+              x: 8,
+              y: 12,
+            },
 
-          scale: 1,
+            texture: {
+              src: FLOOR_TEXTURE,
 
-          repeatX: 1,
-          repeatY: 1,
+              mode: "continuous",
 
-          rotation: 0,
+              repeatX: 1,
+              repeatY: 1,
 
-          offsetX: 0,
-          offsetY: 0,
+              scale: 2,
 
-          alpha: 0.25,
+              rotation: -25,
 
-          blendMode: "screen",
-        },
+              offsetX: -0.1,
+              offsetY: 0.1,
+
+              alpha: 0.7,
+
+              blendMode: "screen",
+            },
+          },
+        ],
       },
 
       {
-        id: "damaged-tiles",
+        id: "add-strong-light",
+
+        regions: [
+          {
+            from: {
+              x: 9,
+              y: 9,
+            },
+
+            to: {
+              x: 12,
+              y: 12,
+            },
+
+            texture: {
+              src: FLOOR_TEXTURE,
+
+              mode: "continuous",
+
+              repeatX: 1,
+              repeatY: 1,
+
+              scale: 2,
+
+              rotation: 0,
+
+              offsetX: 0,
+              offsetY: 0,
+
+              alpha: 0.3,
+
+              blendMode: "add",
+            },
+          },
+        ],
+      },
+
+      {
+        id: "tile-tests",
 
         tiles: [
           {
             position: {
-              x: 1,
+              x: 13,
               y: 1,
             },
 
             texture: {
-              src: "/assets/textures/floors/marble.jpg",
+              src: FLOOR_TEXTURE,
 
               mode: "tile",
 
@@ -226,30 +429,133 @@ export const testRoom: ILocation = {
 
               rotation: 0,
 
-              alpha: 0.8,
+              alpha: 1,
 
-              blendMode: "multiply",
+              blendMode: "normal",
             },
           },
 
           {
             position: {
-              x: 1,
+              x: 13,
               y: 2,
             },
 
             texture: {
-              src: "/assets/textures/floors/marble.jpg",
+              src: FLOOR_TEXTURE,
 
               mode: "tile",
 
-              scale: 1.3,
+              scale: 1,
 
               rotation: 90,
 
-              offsetX: 0.05,
+              alpha: 1,
 
-              alpha: 0.65,
+              blendMode: "normal",
+            },
+          },
+
+          {
+            position: {
+              x: 13,
+              y: 3,
+            },
+
+            texture: {
+              src: FLOOR_TEXTURE,
+
+              mode: "tile",
+
+              scale: 1,
+
+              rotation: 180,
+
+              alpha: 1,
+
+              blendMode: "normal",
+            },
+          },
+
+          {
+            position: {
+              x: 13,
+              y: 4,
+            },
+
+            texture: {
+              src: FLOOR_TEXTURE,
+
+              mode: "tile",
+
+              scale: 1,
+
+              rotation: 270,
+
+              alpha: 1,
+
+              blendMode: "normal",
+            },
+          },
+
+          {
+            position: {
+              x: 13,
+              y: 6,
+            },
+
+            texture: {
+              src: FLOOR_TEXTURE,
+
+              mode: "tile",
+
+              scale: 0.5,
+
+              rotation: 0,
+
+              alpha: 1,
+
+              blendMode: "normal",
+            },
+          },
+
+          {
+            position: {
+              x: 13,
+              y: 7,
+            },
+
+            texture: {
+              src: FLOOR_TEXTURE,
+
+              mode: "tile",
+
+              scale: 1.5,
+
+              rotation: 0,
+
+              alpha: 1,
+
+              blendMode: "normal",
+            },
+          },
+
+          {
+            position: {
+              x: 13,
+              y: 9,
+            },
+
+            texture: {
+              src: FLOOR_TEXTURE,
+
+              mode: "tile",
+
+              scale: 1,
+
+              rotation: 0,
+
+              alpha: 0.6,
 
               blendMode: "multiply",
             },
@@ -257,22 +563,43 @@ export const testRoom: ILocation = {
 
           {
             position: {
-              x: 2,
-              y: 1,
+              x: 13,
+              y: 10,
             },
 
             texture: {
-              src: "/assets/textures/floors/marble.jpg",
+              src: FLOOR_TEXTURE,
 
               mode: "tile",
 
-              scale: 0.8,
+              scale: 1,
 
-              rotation: 180,
+              rotation: 0,
 
               alpha: 0.5,
 
-              blendMode: "multiply",
+              blendMode: "screen",
+            },
+          },
+
+          {
+            position: {
+              x: 13,
+              y: 11,
+            },
+
+            texture: {
+              src: FLOOR_TEXTURE,
+
+              mode: "tile",
+
+              scale: 1,
+
+              rotation: 0,
+
+              alpha: 0.2,
+
+              blendMode: "add",
             },
           },
         ],

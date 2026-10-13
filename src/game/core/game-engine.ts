@@ -50,6 +50,8 @@ import { createWallsLayer } from "../world/create-walls-layer";
 
 import { useInteractionHintStore } from "../store/use-interaction-hint-store";
 
+import { worldToIso } from "../world/iso";
+
 export class GameEngine {
   private player: PlayerController | null = null;
 
@@ -196,6 +198,8 @@ export class GameEngine {
             items: controller.getContents(),
           });
 
+          focusCameraOnObject(object.position.x, object.position.y);
+
           break;
         }
 
@@ -237,6 +241,8 @@ export class GameEngine {
           useDialogueStore
             .getState()
             .openDialogue(npc.id, dialogue.id, dialogueController);
+
+          focusCameraOnObject(object.position.x, object.position.y);
 
           break;
         }
@@ -409,6 +415,29 @@ export class GameEngine {
       bounds: cameraBounds,
     });
 
+    let interactionCameraTarget: {
+      x: number;
+      y: number;
+    } | null = null;
+
+    let interactionCameraPosition: {
+      x: number;
+      y: number;
+    } | null = null;
+
+    const INTERACTION_CAMERA_SPEED = 6;
+
+    const focusCameraOnObject = (x: number, y: number) => {
+      const position = worldToIso(x, y);
+
+      interactionCameraTarget = {
+        x: position.x,
+        y: position.y,
+      };
+
+      interactionCameraPosition = camera.getFocusPoint();
+    };
+
     camera.focusOn(playerView.x, playerView.y);
 
     app.stage.addChild(this.worldContainer);
@@ -440,19 +469,6 @@ export class GameEngine {
     this.removeContainerTakeAllHandler = removeContainerTakeAllHandler;
 
     app.ticker.add((ticker) => {
-      if (!gamePauseController.isPaused()) {
-        const isRunning =
-          keyboard.isPressed("ShiftLeft") || keyboard.isPressed("ShiftRight");
-
-        const moveSpeed =
-          GAME_CONFIG.player.moveSpeed *
-          (isRunning ? GAME_CONFIG.player.runMultiplier : 1);
-
-        player.update(ticker.deltaMS, moveSpeed);
-
-        this.updateMovement(player, keyboard);
-      }
-
       const interactiveObject = interactionSystem.getInteractiveObjectInFront(
         player.getPosition(),
         player.getDirection(),
@@ -464,29 +480,73 @@ export class GameEngine {
         switch (interactiveObject.interactionAction) {
           case "talk":
             interactionHintStore.show("talk");
-
             break;
 
           case "open-container":
             interactionHintStore.show("open");
-
             break;
 
           case "transition":
             interactionHintStore.show("enter");
-
             break;
 
           case "inspect":
             interactionHintStore.show("inspect");
-
             break;
         }
       } else {
         interactionHintStore.hide();
       }
 
-      camera.update(playerView.x, playerView.y);
+      const hasCameraInteraction =
+        gamePauseController.has("dialogue") ||
+        gamePauseController.has("container");
+
+      if (interactionCameraTarget && hasCameraInteraction) {
+        if (!interactionCameraPosition) {
+          interactionCameraPosition = {
+            x: playerView.x,
+            y: playerView.y,
+          };
+        }
+
+        const deltaSeconds = ticker.deltaMS / 1000;
+
+        const smoothing =
+          1 - Math.exp(-INTERACTION_CAMERA_SPEED * deltaSeconds);
+
+        interactionCameraPosition.x +=
+          (interactionCameraTarget.x - interactionCameraPosition.x) * smoothing;
+
+        interactionCameraPosition.y +=
+          (interactionCameraTarget.y - interactionCameraPosition.y) * smoothing;
+
+        camera.focusOn(
+          interactionCameraPosition.x,
+          interactionCameraPosition.y,
+        );
+      } else {
+        interactionCameraTarget = null;
+
+        interactionCameraPosition = null;
+
+        camera.update(playerView.x, playerView.y);
+      }
+
+      if (gamePauseController.isPaused()) {
+        return;
+      }
+
+      const isRunning =
+        keyboard.isPressed("ShiftLeft") || keyboard.isPressed("ShiftRight");
+
+      const moveSpeed =
+        GAME_CONFIG.player.moveSpeed *
+        (isRunning ? GAME_CONFIG.player.runMultiplier : 1);
+
+      player.update(ticker.deltaMS, moveSpeed);
+
+      this.updateMovement(player, keyboard);
     });
   }
 

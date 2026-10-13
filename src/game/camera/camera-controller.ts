@@ -107,6 +107,14 @@ export class CameraController {
     this.clampToBounds();
   }
 
+  getFocusPoint() {
+    return {
+      x: (this.viewportWidth / 2 - this.world.position.x) / this.zoom,
+
+      y: (this.viewportHeight / 2 - this.world.position.y) / this.zoom,
+    };
+  }
+
   setZoom(zoom: number) {
     this.zoom = Math.max(0.1, zoom);
 
